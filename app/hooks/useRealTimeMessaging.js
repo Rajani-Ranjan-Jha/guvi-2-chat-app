@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useState, useCallback, useRef, useId } from "react";
 import { useSocket } from "@/app/components/SocketProvider";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+
 
 export const useRealTimeMessaging = (conversationId) => {
   const { socket, isConnected, joinConversation, leaveConversation } =
@@ -12,10 +13,12 @@ export const useRealTimeMessaging = (conversationId) => {
   const [onlineUsers, setOnlineUsers] = useState(new Set());
 
   const user = useSelector((state) => state.user.user);
+  const dispatch = useDispatch();
+  
 
   // Add message OLD to the list
   const addMessage = useCallback((messages) => {
-    console.warn("1 is runninG");
+    console.warn("Loading messages!");
     if (Array.isArray(messages)) {
       setMessages(messages);
     } else {
@@ -32,15 +35,8 @@ export const useRealTimeMessaging = (conversationId) => {
 
   // TODO: add new messages to the list
   const addNewMessage = useCallback((message) => {
-    console.warn("2 is runninG");
-    setMessages((prev) => {
-      // Check if message already exists
-      const exists = prev.some(
-        (msg) => msg._id === message._id || msg.id === message.id
-      );
-      if (exists) return prev;
-      return [...prev, message];
-    });
+    console.warn("newMessage added!");
+    setMessages(prev => [...prev, message])
   }, []);
 
   // Update existing message
@@ -63,19 +59,6 @@ export const useRealTimeMessaging = (conversationId) => {
 
   // Join/leave conversation when component mounts/unmounts
   useEffect(() => {
-    // if (user && isConnected) {
-    //   let userId = user.id;
-    //   if (!userId) {
-    //     // console.log("Didn't get any userID(hook)");
-    //     return;
-    //   }
-    //   const id = String(userId);
-    //   setOnlineUsers((prev) => {
-    //     const next = new Set(prev);
-    //     next.add(id);
-    //     return next;
-    //   });
-    // }
 
     if (conversationId && isConnected) {
       joinConversation(conversationId);
@@ -91,16 +74,11 @@ export const useRealTimeMessaging = (conversationId) => {
   // Socket event listeners
   useEffect(() => {
     if (!socket) {
-      // console.error("SOCKET IS NOT ACTIVE IN HOOK");
       return;
     }
-    // console.warn(`SOCKET ID in HOOK: ${socket.id}`);
-
     // Handle new messages
     const handleNewMessage = (data) => {
-      console.log("New message received in HOOK:", data);
       if (data.conversationId === conversationId) {
-        // addMessage(data.message);
         // TODO:
         addNewMessage(data.message);
       }
@@ -108,6 +86,7 @@ export const useRealTimeMessaging = (conversationId) => {
 
     // Handle user typing
     const handleUserTyping = (data) => {
+      
       if (data.conversationId === conversationId) {
         if (data.isTyping) {
           setTypingUsers((prev) => {
@@ -117,9 +96,11 @@ export const useRealTimeMessaging = (conversationId) => {
             return prev;
           });
         } else {
-          setTypingUsers((prev) =>
-            prev.filter((name) => name !== data.username)
-          );
+          // setTypingUsers((prev) =>
+          //   prev.filter((name) => name !== data.username)
+          // );
+          // TODO:
+          setTypingUsers([])
         }
       }
     };
@@ -127,13 +108,14 @@ export const useRealTimeMessaging = (conversationId) => {
     // Handle initial online users list
     const handleOnlineUsersList = (userIds) => {
       console.log("Hook: Received online users list:", userIds);
+      // TODO: adding online users into the redux
       const onlineSet = new Set(userIds.map((id) => String(id)));
       setOnlineUsers(onlineSet);
+      dispatch(setActiveUsers(Array.from(onlineSet)));
     };
 
     // Handle user online status
     const handleUserOnline = (userId) => {
-      // console.log("user online function is running...");
       if (!userId) {
         // console.log("Didn't get any userID(hook)");
         return;
@@ -150,7 +132,6 @@ export const useRealTimeMessaging = (conversationId) => {
 
     const handleUserOffline = (userId) => {
       if (!userId) {
-        // console.log("Didn't get any userID(hook)");
         return;
       }
       const id = String(userId);

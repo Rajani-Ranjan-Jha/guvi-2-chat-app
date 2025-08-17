@@ -2,7 +2,13 @@
 import Image from "next/image";
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
+import { useSelector, useDispatch } from "react-redux";
+
+
+
+import { setAuth, setActiveUsers } from "@/app/redux/authSlice";
 import { useSocket } from './SocketProvider';
+
 
 const ShowContacts = ({ onContactSelect, searchContact = null }) => {
     const [currentUser, setCurrentUser] = useState(null);
@@ -10,7 +16,10 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
     const [contacts, setContacts] = useState([]);
     const [loading, setLoading] = useState(true);
     const [onlineUsers, setOnlineUsers] = useState(new Set());
+
+
     const { socket, isConnected } = useSocket();
+    const dispatch = useDispatch();
 
     const handleContactClick = (contact) => {
         // console.log('Contact clicked:', contact);
@@ -75,6 +84,8 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
             console.log("ShowContacts: Received online users list:", userIds);
             const onlineSet = new Set(userIds.map(id => String(id)));
             setOnlineUsers(onlineSet);
+            // TODO: adding online users into the redux
+            dispatch(setActiveUsers(Array.from(onlineSet)));
         };
 
         const handleUserOnline = (userId) => {

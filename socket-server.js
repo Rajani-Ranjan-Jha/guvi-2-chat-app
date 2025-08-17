@@ -54,43 +54,6 @@ app.prepare().then(() => {
       console.log(`User ${socket.id} left conversation ${conversationId}`);
     });
 
-    // Handle new message
-    socket.on('send-message', (data) => {
-      const { conversationId, message } = data;
-      console.log(`Received message for conversation ${conversationId}:`, message);
-      // Broadcast message to all users in the conversation (except sender)
-      // socket.to(conversationId).emit('new-message', {
-      //   conversationId,
-      //   message
-      // });
-      // TODO:
-      io.to(conversationId).emit('new-message', {
-        conversationId,
-        message
-      });
-      console.log(`Message "${message}" send to conversation ${conversationId}`);
-    });
-
-    // Handle typing indicators
-    socket.on('typing-start', (data) => {
-      const { conversationId, userId, username } = data;
-      socket.to(conversationId).emit('user-typing', {
-        conversationId,
-        userId,
-        username,
-        isTyping: true
-      });
-    });
-
-    socket.on('typing-stop', (data) => {
-      const { conversationId, userId } = data;
-      socket.to(conversationId).emit('user-typing', {
-        conversationId,
-        userId,
-        isTyping: false
-      });
-    });
-
     // Handle online status
     socket.on('set-online', (userId) => {
       console.log(`User ${userId} is online(socket-server ${socket.id})\n`);
@@ -123,6 +86,44 @@ app.prepare().then(() => {
       io.emit('user-offline', userId);
     });
 
+    // Handle typing-start
+    socket.on('typing-start', (data) => {
+      const { conversationId, userId, username } = data;
+      socket.to(conversationId).emit('user-typing', {
+        conversationId,
+        userId,
+        username,
+        isTyping: true
+      });
+    });
+    
+    // Handle typing-stop
+    socket.on('typing-stop', (data) => {
+      const { conversationId, userId } = data;
+      socket.to(conversationId).emit('user-typing', {
+        conversationId,
+        userId,
+        isTyping: false
+      });
+    });
+
+    // Handle new message
+    socket.on('send-message', (data) => {
+      const { conversationId, message } = data;
+      console.log(`Received message for conversation ${conversationId}:`, message);
+      // Broadcast message to all users in the conversation (except sender)
+      // socket.to(conversationId).emit('new-message', {
+      //   conversationId,
+      //   message
+      // });
+      // TODO:
+      io.to(conversationId).emit('new-message', {
+        conversationId,
+        message
+      });
+      console.log(`Message "${message}" send to conversation ${conversationId}`);
+    });
+    
     // Handle read receipts
     socket.on('mark-read', (data) => {
       const { conversationId, messageId, userId } = data;

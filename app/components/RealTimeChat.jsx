@@ -17,7 +17,13 @@ const RealTimeChat = ({
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+
   const user = useSelector((state) => state.user.user);
+  // TODO: online users
+  const active = useSelector((state) => state.user.ActiveUsers);
+  // console.warn("Active users in RealTimeChat:", conversationData.participants);
+
+
   const { socket, sendMessage, markMessageAsRead, joinConversation, leaveConversation } = useSocket();
   const router = useRouter();
 
@@ -65,12 +71,6 @@ const RealTimeChat = ({
     fetchMessages();
   }, [conversationId]);
 
-  // TODO:
-  // useEffect(() => {
-  //   console.log("Messages recieved from the server:", messages);
-    
-  // }, [messages])
-  
 
   // Handle sending messages
   const handleSendMessage = async (messageData) => {
@@ -125,14 +125,6 @@ const RealTimeChat = ({
         )
       );
 
-      // Mark as delivered using the socket
-      if (socket) {
-        socket.emit('message-delivered', {
-          conversationId,
-          messageId: result.data._id
-        });
-      }
-
     } catch (error) {
       console.error('Error sending message:', error);
       
@@ -143,38 +135,6 @@ const RealTimeChat = ({
       
       // You could show a toast notification here
       alert('Failed to send message. Please try again!');
-    }
-  };
-
-  // Handle message read
-  const handleMessageRead = async (messageId) => {
-    try {
-      // Mark as read locally
-      setMessages(prev => 
-        prev.map(msg => 
-          msg._id === messageId 
-            ? { ...msg, readBy: [...(msg.readBy || []), user.id] }
-            : msg
-        )
-      );
-
-      // Send read receipt through Socket.IO
-      markMessageAsRead(conversationId, messageId);
-
-      // Update read status in API
-      await fetch(`/api/messages/actions/${messageId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          action: 'mark-read',
-          userId: user.id
-        }),
-      });
-
-    } catch (error) {
-      console.error('Error marking message as read:', error);
     }
   };
 
@@ -224,7 +184,8 @@ const RealTimeChat = ({
                 {conversationData?.name || 'Chat'}
               </h2>
               <p className="text-sm">
-                {conversationData?.participants?.length || 0} participants
+                {conversationData?.participants?.length > 1 ? `${conversationData?.participants?.length} participants` : 
+                `${active.includes(conversationData?.participants[0]) ? 'Online' : 'Offline'}`}
               </p>
             </div>
           </div>
@@ -259,7 +220,6 @@ const RealTimeChat = ({
           <RealTimeMessageList
             conversationId={conversationId}
             initialMessages={messages}
-            onMessageRead={handleMessageRead}
           />
         )}
       </div>

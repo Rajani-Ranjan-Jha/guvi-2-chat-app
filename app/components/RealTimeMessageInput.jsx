@@ -23,16 +23,16 @@ const RealTimeMessageInput = ({
         startTyping(conversationId);
       }
       
-      // Clear existing timeout
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
+      // // Clear existing timeout
+      // if (typingTimeoutRef.current) {
+      //   clearTimeout(typingTimeoutRef.current);
+      // }
       
-      // Set new timeout to stop typing indicator
-      typingTimeoutRef.current = setTimeout(() => {
-        setIsTyping(false);
-        stopTyping(conversationId);
-      }, 1000);
+      // // Set new timeout to stop typing indicator
+      // typingTimeoutRef.current = setTimeout(() => {
+      //   setIsTyping(false);
+      //   stopTyping(conversationId);
+      // }, 5000);
     } else {
       if (isTyping) {
         setIsTyping(false);
@@ -40,19 +40,19 @@ const RealTimeMessageInput = ({
       }
     }
 
-    return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
-    };
+    // return () => {
+    //   if (typingTimeoutRef.current) {
+    //     clearTimeout(typingTimeoutRef.current);
+    //   }
+    // };
   }, [message, isTyping, conversationId, startTyping, stopTyping]);
 
   // Cleanup typing indicator on unmount
   useEffect(() => {
     return () => {
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
+      // if (typingTimeoutRef.current) {
+      //   clearTimeout(typingTimeoutRef.current);
+      // }
       if (isTyping) {
         stopTyping(conversationId);
       }
@@ -148,12 +148,12 @@ const RealTimeMessageInput = ({
         {/* Message input */}
         <div className="flex-1">
           <textarea
+            className="w-full resize-none border-0 focus:ring-0 focus:outline-none p-2 min-h-[40px] max-h-32"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder={placeholder}
             disabled={disabled}
-            className="w-full resize-none border-0 focus:ring-0 focus:outline-none p-2 min-h-[40px] max-h-32"
             rows={1}
           />
         </div>
@@ -177,19 +177,7 @@ const RealTimeMessageInput = ({
         </button>
       </form>
 
-      {/* Typing indicator */}
-      {isTyping && (
-        <div className="px-3 pb-2">
-          <div className="flex items-center gap-2 text-sm text-gray-500">
-            <div className="flex gap-1">
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-            </div>
-            <span>typing...</span>
-          </div>
-        </div>
-      )}
+      
     </div>
   );
 };

@@ -18,7 +18,7 @@ import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 
 import { useSocket } from "./components/SocketProvider";
-import { setAuth, setOnlineUsers } from "./redux/authSlice";
+import { setAuth, setActiveUsers } from "./redux/authSlice";
 
 import AddContacts from "./components/AddContacts";
 import ShowContacts from "./components/ShowContacts";
@@ -47,7 +47,6 @@ export default function Home() {
 
 
   useEffect(() => {
-    console.warn("PAGE.JSX");
     const loadCurrentUser = async () => {
       try {
         const res = await axios.get("/api/auth/session");

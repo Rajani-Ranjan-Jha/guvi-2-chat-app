@@ -10,6 +10,7 @@ import React, { useState, useEffect } from 'react';
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
     const dispatch = useDispatch(); // Initialize dispatch
 
@@ -27,6 +28,7 @@ const Login = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setLoading(true);
         const result = await signIn("credentials", {
             email,
             password,
@@ -36,9 +38,9 @@ const Login = () => {
         if (result?.error) {
             console.error(result.error);
         } else {
-            console.warn('Logged in successfully');
-            // Dispatch setAuth action with user data
             dispatch(setAuth({ user: result.user, token: result.token }));
+            console.warn('Logged in successfully');
+            setLoading(false);
             router.push("/");
         }
     };
@@ -50,7 +52,7 @@ const Login = () => {
                 <form onSubmit={handleSubmit} className='flex flex-col justify-center items-center gap-4 mt-4  w-full'>
                     <input onChange={(e) => { setEmail(e.target.value) }} type="email" placeholder='Email' className='w-4/5  mx-atuo focus:outline-none focus:ring-red-500 p-2 rounded-md bg-gray-800 text-white' />
                     <input onChange={(e) => { setPassword(e.target.value) }} type="password" placeholder='Password' className='w-4/5  mx-atuo focus:outline-none focus:ring-red-500 p-2 rounded-md bg-gray-800 text-white' />
-                    <button type="submit" className='mt-4 bg-blue-600 px-4 py-2 rounded-md text-white hover:bg-blue-700 transition-colors'>Login</button>
+                    <button type="submit" disabled={loading} className='mt-4 bg-blue-600 px-4 py-2 rounded-md text-white hover:bg-blue-700 transition-colors'>{loading ? 'Loading...' : "Login"}</button>
                 </form>
                 <p className='text-white mt-4'>Don't have an account? <a href="/register" className='text-blue-500 hover:underline'>Create a new account</a></p>
             </div>
