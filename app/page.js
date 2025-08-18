@@ -20,18 +20,23 @@ import axios from "axios";
 import { Tooltip } from "react-tooltip";
 
 import { useSocket } from "./components/SocketProvider";
-import { setAuth, setActiveUsers } from "./redux/authSlice";
+import { setAuth, setUserInfo, setActiveUsers } from "./redux/authSlice";
 
 import AddContacts from "./components/AddContacts";
 import ShowContacts from "./components/ShowContacts";
 import DefaultTemplate from "./components/DefaultTemplate";
 import EnhancedChatTemplate from "./components/EnhancedChatTemplate";
 import { useRealTimeMessaging } from "./hooks/useRealTimeMessaging";
+import UserProfile from "./components/UserProfile";
 
 export default function Home() {
   // for addContact.jsx
   const [addbtn, setAddbtn] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+  
+  // for profile
+  const [OpenProfile, setOpenProfile] = useState(false);
+
 
 
   const [isSidebarOpen, setisSidebarOpen] = useState(true);
@@ -49,16 +54,27 @@ export default function Home() {
   const {} = useRealTimeMessaging();
 
   const dispatch = useDispatch();
-  const userX = useSelector((state) => state.user.user);
+  const userX = useSelector((state) => state.user);
+  console.warn("user data", userX)
 
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
-        const res = await axios.get("/api/auth/session");
-        if (res.data?.user) {
-          dispatch(setAuth(res.data));
-          setUser(res.data.user);
+        const res1 = await axios.get("/api/auth/session");
+        // if (res1.data?.user) {
+        //   dispatch(setAuth(res1.data));
+        //   setUser(res1.data.user);
+        // }
+        const ID = await res1.data?.user?.id
+        if(!ID) return
+        // console.warn("Fetching with ID",ID)
+        const res2 = await axios.get(`/api/user/info?id=${ID}`);
+        // console.log("INFO:",res2.data)
+        if (res2.data) {
+          dispatch(setUserInfo(res2.data));
+          setUser(res2.data);
         }
+
       } catch (error) {
         console.error("Error loading current user:", error);
       }
@@ -83,19 +99,36 @@ export default function Home() {
       }
     };
 
-    // setUserStatusOnline();
+    const getUserInfoById = async() => {
+      try {
+        const res2 = await axios.get(`/api/user/info?id=${user.id}`);
+        console.log("INFO:",res2.data)
+      }  catch (error) {
+        console.error("Error loading current user:", error);
+      }
+    }
+    // getUserInfoById()
   }, [user]);
 
   const toggleAddContact = (creatingAGroup=false) => {
     setAddbtn(!addbtn);
     setIsCreatingGroup(creatingAGroup)
   };
-  const toggleSidebar = () => {
-    setisSidebarOpen(!isSidebarOpen);
-  };
 
+  const toggleUserProfile = () => {
+    setOpenProfile(!OpenProfile)
+  };
+  
   const closeAddContact = () => {
     setAddbtn(false);
+  };
+  
+  const closeUserProfile = () => {
+    setOpenProfile(false);
+  };
+
+  const toggleSidebar = () => {
+    setisSidebarOpen(!isSidebarOpen);
   };
 
   const handleContactSelect = (contact) => {
@@ -147,7 +180,9 @@ export default function Home() {
             <button className="w-5">
               <Settings />
             </button>
-            <button className="w-5">
+            <button className="w-5"
+            onClick={()=>{toggleUserProfile()}}>
+              
               <Image
                 className="w-5"
                 src={`${
@@ -261,6 +296,8 @@ export default function Home() {
         )}
       </main>
 
+
+      {/* for add contact */}
       {addbtn && (
         <div
           className="fixed inset-0 bg-black/25 bg-opacity-10 flex justify-center items-center z-20"
@@ -272,6 +309,16 @@ export default function Home() {
           >
             <AddContacts creatingAGroup={isCreatingGroup} onConversationCreate={handleConversationSelect} />
           </div>
+        </div>
+      )}
+
+      {/* for user profile */}
+      {OpenProfile && (
+        <div
+          className="fixed inset-0 bg-black/20 flex justify-center items-center z-20"
+          onClick={closeUserProfile}
+        >
+          <UserProfile/>
         </div>
       )}
     </div>
