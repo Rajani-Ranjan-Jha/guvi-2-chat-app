@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef, useId } from "react";
 import { useSocket } from "@/app/components/SocketProvider";
 import { useSelector, useDispatch } from "react-redux";
+import { setActiveUsers } from "../redux/authSlice";
 
 
 export const useRealTimeMessaging = (conversationId) => {

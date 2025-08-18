@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { SendHorizonal, Paperclip, Smile } from 'lucide-react';
 import { useSocket } from './SocketProvider';
+import CustomEmojiPicker from './EmojiPicker';
 
 const RealTimeMessageInput = ({ 
   conversationId, 
@@ -12,8 +13,10 @@ const RealTimeMessageInput = ({
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [attachments, setAttachments] = useState([]);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const { startTyping, stopTyping } = useSocket();
   const typingTimeoutRef = useRef(null);
+  const textareaRef = useRef(null);
 
   // Handle typing indicators
   useEffect(() => {
@@ -90,6 +93,24 @@ const RealTimeMessageInput = ({
     }
   };
 
+  const handleEmojiSelect = (emoji) => {
+    const textarea = textareaRef.current;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const newMessage = message.substring(0, start) + emoji + message.substring(end);
+      // const newMessage = message + emoji; // Append emoji at the end
+      console.warn("New message with emoji:", newMessage);
+      setMessage(newMessage);
+      
+      // Set cursor position after the inserted emoji
+      setTimeout(() => {
+        textarea.focus();
+        textarea.setSelectionRange(start + emoji.length, start + emoji.length);
+      }, 0);
+    }
+  };
+
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file => {
@@ -146,8 +167,9 @@ const RealTimeMessageInput = ({
         </label>
 
         {/* Message input */}
-        <div className="flex-1">
+        <div className="flex-1 relative">
           <textarea
+            ref={textareaRef}
             className="w-full resize-none border-0 focus:ring-0 focus:outline-none p-2 min-h-[40px] max-h-32"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
@@ -156,13 +178,21 @@ const RealTimeMessageInput = ({
             disabled={disabled}
             rows={1}
           />
+          
+          {showEmojiPicker && (
+            <CustomEmojiPicker 
+              onEmojiSelect={handleEmojiSelect}
+              onClose={() => setShowEmojiPicker(false)}
+            />
+          )}
         </div>
 
         {/* Emoji button */}
         <button
           type="button"
-          className="p-2 text-gray-500 hover:text-gray-700 transition-colors"
+          className="p-2 text-gray-500 hover:text-gray-700 transition-colors relative"
           disabled={disabled}
+          onClick={() => setShowEmojiPicker(prev => prev == false ? !prev : null)}
         >
           <Smile className="w-5 h-5" />
         </button>
