@@ -34,7 +34,7 @@ export async function POST(request) {
     }
 
     // Check if user is part of the conversation
-    if (!message.conversation.participants.includes(currentUserId)) {
+    if (!message.conversation.participants.map(id => String(id)).includes(String(currentUserId))) {
       return NextResponse.json({ error: "Access denied" }, { status: 403 });
     }
 
@@ -64,38 +64,52 @@ export async function POST(request) {
         };
         break;
 
-      case 'react':
+      case 'react': {
         if (!emoji) {
           return NextResponse.json({ error: "Emoji is required" }, { status: 400 });
         }
 
-        // Find existing reaction
-        const existingReaction = message.metadata?.reactions?.find(r => r.emoji === emoji);
-        
-        if (existingReaction) {
-          // Toggle user's reaction
-          const userIndex = existingReaction.users.indexOf(currentUserId);
-          if (userIndex > -1) {
-            // Remove reaction
-            existingReaction.users.splice(userIndex, 1);
-            existingReaction.count = Math.max(0, existingReaction.count - 1);
+        const currentId = String(currentUserId);
+        const existing = Array.isArray(message.metadata?.reactions) ? message.metadata.reactions.map(r => ({
+          emoji: r.emoji,
+          users: (r.users || []).map(u => String(u)),
+          count: Number(r.count || (r.users ? r.users.length : 0))
+        })) : [];
+
+        // Enforce single reaction per user
+        const alreadyIdx = existing.findIndex(r => r.users.includes(currentId));
+        // If user clicked the same emoji they already have -> toggle off
+        if (alreadyIdx > -1 && existing[alreadyIdx].emoji === emoji) {
+          const r = { ...existing[alreadyIdx] };
+          r.users = r.users.filter(u => u !== currentId);
+          r.count = r.users.length;
+          const next = [...existing];
+          if (r.count === 0) {
+            next.splice(alreadyIdx, 1);
           } else {
-            // Add reaction
-            existingReaction.users.push(currentUserId);
-            existingReaction.count += 1;
+            next[alreadyIdx] = r;
           }
+          updateData = { $set: { 'metadata.reactions': next } };
         } else {
-          // Create new reaction
-          if (!updateData.$push) updateData.$push = {};
-          if (!updateData.$push['metadata.reactions']) updateData.$push['metadata.reactions'] = [];
-          
-          updateData.$push['metadata.reactions'].push({
-            emoji,
-            users: [currentUserId],
-            count: 1
-          });
+          // Remove previous reaction (if any) then add to new emoji
+          let trimmed = existing.map(r => ({
+            ...r,
+            users: r.users.filter(u => u !== currentId)
+          })).filter(r => r.users.length > 0);
+
+          const idx = trimmed.findIndex(r => r.emoji === emoji);
+          if (idx > -1) {
+            const r = { ...trimmed[idx] };
+            r.users = [...r.users, currentId];
+            r.count = r.users.length;
+            trimmed[idx] = r;
+          } else {
+            trimmed.push({ emoji, users: [currentId], count: 1 });
+          }
+          updateData = { $set: { 'metadata.reactions': trimmed } };
         }
         break;
+      }
 
       case 'mark_read':
         updateData = {

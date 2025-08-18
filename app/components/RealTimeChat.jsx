@@ -21,7 +21,7 @@ const RealTimeChat = ({
   const user = useSelector((state) => state.user.user);
   // TODO: online users
   const active = useSelector((state) => state.user.ActiveUsers);
-  // console.warn("Active users in RealTimeChat:", conversationData);
+  // console.warn("Active users in RealTimeChat:", active);
 
 
   const { socket, sendMessage, markMessageAsRead, joinConversation, leaveConversation } = useSocket();

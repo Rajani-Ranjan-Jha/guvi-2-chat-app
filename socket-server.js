@@ -64,7 +64,7 @@ app.prepare().then(() => {
       onlineUsers.set(userId, socket.id)
 
       const allOnlineUsersId = Array.from(onlineUsers.keys())
-      console.log(`Online users: ${allOnlineUsersId}`);
+      console.log(`Online users: [${allOnlineUsersId}]`);
 
       // send the data
       socket.emit('online-users-list', allOnlineUsersId);
@@ -171,7 +171,10 @@ app.prepare().then(() => {
 
   // Run the server on PORT
   server.listen(port, (err) => {
-    if (err) throw err;
+    if (err) {
+      console.error(err)
+      return
+    };
     console.log(`> Ready on http://${hostname}:${port}`);
     console.log('> Socket.IO server is running');
   });

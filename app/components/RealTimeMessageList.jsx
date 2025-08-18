@@ -18,6 +18,9 @@ const RealTimeMessageList = ({
   // TODO: to handle the typing animation
   const [isTyping, setIsTyping] = useState(false);
 
+  // to manage message action menu visibility per message
+  const [hoveredMessageId, setHoveredMessageId] = useState(null);
+
 
   const {
     messages,
@@ -27,7 +30,8 @@ const RealTimeMessageList = ({
     updateMessage,
     removeMessage,
     isUserOnline,
-    isConnected
+    isConnected,
+    reactToMessage
   } = useRealTimeMessaging(conversationId);
 
   // Initialize messages with initial data (only once)
@@ -87,6 +91,8 @@ const RealTimeMessageList = ({
     const senderId = message.sender?._id || message.sender;
     const isOnline = senderId && isUserOnline(senderId);
     const messageId = message._id || message.id;
+    const reactions = message.metadata?.reactions || [];
+    const myId = user?.id ? String(user.id) : null;
 
     return (
       <div
@@ -95,7 +101,11 @@ const RealTimeMessageList = ({
         data-message-sender={senderId}
         className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}
       >
-        <div className={`max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}>
+        <div 
+          className={`relative max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}
+          onMouseEnter={() => setHoveredMessageId(messageId)}
+          onMouseLeave={() => setHoveredMessageId((prev) => (prev === messageId ? null : prev))}
+        >
           {/* Sender info for group chats */}
           {!isOwnMessage && (
             <div className="flex items-center gap-2 mb-1">
@@ -108,6 +118,28 @@ const RealTimeMessageList = ({
               <span className="text-xs text-gray-500">{senderName}</span>
             </div>
           )}
+          {/* Floating action bar (absolute positioned so it doesn't shift layout) */}
+          {hoveredMessageId === messageId && (
+            <div className={`absolute -top-4 ${isOwnMessage ? 'right-2' : 'left-2'} z-10`}> 
+              <div className="rounded-full bg-white shadow px-2 py-1 border border-gray-200">
+                <ul className="flex gap-2 text-base select-none">
+                  {['👍','🩷','😂','😯','😢','🙏'].map((emoji) => (
+                    <li key={emoji}>
+                      <button
+                        type="button"
+                        className="hover:scale-110 transition-transform"
+                        onClick={() => reactToMessage(conversationId, messageId, emoji)}
+                        aria-label={`React ${emoji}`}
+                      >
+                        {emoji}
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          )}
+
 
           {/* Message bubble */}
           <div
@@ -132,11 +164,27 @@ const RealTimeMessageList = ({
               </div>
             )}
 
-            {/* Message metadata */}
-            <div className={`flex items-center justify-between mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'
-              }`}>
-              <span>{formatTime(message.timestamp || message.createdAt)}</span>
+            {/* Reactions display (inline, non-shifting) */}
+            {reactions.length > 0 && (
+              <div className="mt-1 flex flex-wrap gap-1">
+                {reactions.map((r) => {
+                  const youReacted = myId && (r.users || []).map(String).includes(String(myId));
+                  return (
+                    <span
+                      key={r.emoji}
+                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs border ${youReacted ? 'bg-white/20 border-white/40' : 'bg-black/10 border-black/10'} `}
+                    >
+                      <span>{r.emoji}</span>
+                      <span>{r.count || (r.users ? r.users.length : 0)}</span>
+                    </span>
+                  );
+                })}
+              </div>
+            )}
 
+            {/* Message metadata */}
+            <div className={`flex items-center justify-between mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+              <span>{formatTime(message.timestamp || message.createdAt)}</span>
             </div>
           </div>
         </div>

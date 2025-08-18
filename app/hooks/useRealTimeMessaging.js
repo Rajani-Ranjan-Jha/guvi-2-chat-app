@@ -58,6 +58,95 @@ export const useRealTimeMessaging = (conversationId) => {
     );
   }, []);
 
+  // Toggle a reaction on a message (optimistic update + persist via API)
+  const reactToMessage = useCallback(async (conversationId, messageId, emoji) => {
+    if (!messageId || !emoji) return;
+
+    const currentUserId = String(user?.id || "");
+    if (!currentUserId) return;
+
+    // Keep snapshot for rollback on failure
+    let previousMessagesSnapshot = null;
+
+    setMessages(prev => {
+      previousMessagesSnapshot = prev;
+      return prev.map(msg => {
+        const msgId = msg._id || msg.id;
+        if (msgId !== messageId) return msg;
+
+        const existingReactions = (msg.metadata?.reactions || []).map(r => ({
+          ...r,
+          users: (r.users || []).map(u => String(u))
+        }));
+
+        // Find any previous reaction by this user
+        const prevIdx = existingReactions.findIndex(r => r.users.includes(currentUserId));
+        const clickedIdx = existingReactions.findIndex(r => r.emoji === emoji);
+
+        // If user clicked the same emoji they already have, toggle it off
+        if (prevIdx > -1 && existingReactions[prevIdx].emoji === emoji) {
+          const r = { ...existingReactions[prevIdx] };
+          r.users = r.users.filter(u => u !== currentUserId);
+          r.count = r.users.length;
+          const next = [...existingReactions];
+          if (r.count === 0) {
+            next.splice(prevIdx, 1);
+          } else {
+            next[prevIdx] = r;
+          }
+          const updatedMetadata = { ...(msg.metadata || {}), reactions: next };
+          return { ...msg, metadata: updatedMetadata };
+        }
+
+        // Otherwise, remove user's previous reaction (if any), and add to the new emoji
+        let trimmed = existingReactions.map(r => ({
+          ...r,
+          users: r.users.filter(u => u !== currentUserId),
+        })).filter(r => r.users.length > 0);
+
+        // Add to clicked reaction
+        const idxAfterTrim = trimmed.findIndex(r => r.emoji === emoji);
+        if (idxAfterTrim > -1) {
+          const r = { ...trimmed[idxAfterTrim] };
+          r.users = [...r.users, currentUserId];
+          r.count = r.users.length;
+          trimmed[idxAfterTrim] = r;
+        } else {
+          trimmed.push({ emoji, users: [currentUserId], count: 1 });
+        }
+
+        const updatedMetadata = { ...(msg.metadata || {}), reactions: trimmed };
+        return { ...msg, metadata: updatedMetadata };
+      });
+    });
+
+    try {
+      const response = await fetch('/api/messages/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'react', messageId, emoji })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update reaction');
+      }
+
+      const result = await response.json();
+      const updatedFromServer = result?.data;
+      if (updatedFromServer) {
+        setMessages(prev => prev.map(m => {
+          const mId = m._id || m.id;
+          return mId === (updatedFromServer._id || updatedFromServer.id) ? { ...m, ...updatedFromServer } : m;
+        }));
+      }
+    } catch (error) {
+      console.error('Reaction update failed; reverting. Reason:', error);
+      if (previousMessagesSnapshot) {
+        setMessages(previousMessagesSnapshot);
+      }
+    }
+  }, [user]);
+
   // Join/leave conversation when component mounts/unmounts
   useEffect(() => {
 
@@ -238,5 +327,6 @@ export const useRealTimeMessaging = (conversationId) => {
     removeMessage,
     isUserOnline,
     isConnected,
+    reactToMessage,
   };
 };

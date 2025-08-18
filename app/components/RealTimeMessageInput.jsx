@@ -100,7 +100,7 @@ const RealTimeMessageInput = ({
       const end = textarea.selectionEnd;
       const newMessage = message.substring(0, start) + emoji + message.substring(end);
       // const newMessage = message + emoji; // Append emoji at the end
-      console.warn("New message with emoji:", newMessage);
+      // console.warn("New message with emoji:", newMessage);
       setMessage(newMessage);
       
       // Set cursor position after the inserted emoji
