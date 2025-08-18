@@ -21,7 +21,7 @@ const RealTimeChat = ({
   const user = useSelector((state) => state.user.user);
   // TODO: online users
   const active = useSelector((state) => state.user.ActiveUsers);
-  // console.warn("Active users in RealTimeChat:", conversationData.participants);
+  // console.warn("Active users in RealTimeChat:", conversationData);
 
 
   const { socket, sendMessage, markMessageAsRead, joinConversation, leaveConversation } = useSocket();
@@ -181,6 +181,7 @@ const RealTimeChat = ({
             </div>
             <div>
               <h2 className="font-semibold">
+                {/* {conversationData.isGroup ? conversationData.groupName : conversationData?.name || 'Chat'} */}
                 {conversationData?.name || 'Chat'}
               </h2>
               <p className="text-sm">
@@ -195,12 +196,12 @@ const RealTimeChat = ({
           <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
             <Search className="w-5 h-5" />
           </button>
-          <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+          {/* <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
             <Phone className="w-5 h-5" />
           </button>
           <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
             <Video className="w-5 h-5" />
-          </button>
+          </button> */}
           <button className="p-2 hover:bg-gray-200 rounded-full transition-colors">
             <MoreVertical className="w-5 h-5" />
           </button>

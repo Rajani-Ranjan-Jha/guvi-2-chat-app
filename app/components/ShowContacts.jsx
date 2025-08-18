@@ -22,7 +22,7 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
     const dispatch = useDispatch();
 
     const handleContactClick = (contact) => {
-        // console.log('Contact clicked:', contact);
+        // console.warn('Contact clicked:', contact);
         if (onContactSelect) {
             onContactSelect(contact);
         }
@@ -121,7 +121,7 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
     useEffect(() => {
         loadCurrentUser();
     }, []);
-    
+
     useEffect(() => {
         if (currentUser) {
             fetchContacts();
@@ -135,20 +135,19 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
     // Format last message time for display
     const formatLastMessageTime = (timestamp) => {
         if (!timestamp) return '';
-        
+
         const date = new Date(timestamp);
         const now = new Date();
-        const diffInHours = (now - date) / (1000 * 60 * 60);
-        
-        if (diffInHours < 1) {
-            return 'Just now';
-        } else if (diffInHours < 24) {
-            return `${Math.floor(diffInHours)}h ago`;
-        } else if (diffInHours < 48) {
+        const isToday = date.toDateString() === now.toDateString();
+        const isYesterday = date.toDateString() === new Date(now.setDate(now.getDate() - 1)).toDateString();
+        if (isToday) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        } else if (isYesterday) {
             return 'Yesterday';
         } else {
             return date.toLocaleDateString();
         }
+
     };
 
     return (
@@ -163,51 +162,52 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
                         // const isOnline = isContactOnline(contact.contactUser.id || contact.contactUser._id);
                         const isOnline = contact.contactUser.status === 'online' || isContactOnline(contact.contactUser.id || contact.contactUser._id);
                         return (
-                            <li 
-                                key={contact.conversationId} 
+                            <li
+                                key={contact.conversationId}
                                 className="w-full rounded-2xl bg-white/20 hover:bg-white/40 cursor-pointer flex justify-start items-center p-2 transition-all duration-200"
                                 onClick={() => handleContactClick(contact)}
                             >
-                            <div className="relative">
-                                <Image
-                                    className="w-10 p-2 border rounded-full hover:bg-white/50"
-                                    src={contact.contactUser.profilePic || "/vercel.svg"}
-                                    alt={contact.contactUser.name || "contact image"}
-                                    width={40}
-                                    height={40}
-                                />
-                                {/* Online status indicator */}
-                                {isOnline && (
-                                    <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
-                                )}
-                            </div>
-                            <div className="w-full cursor-pointer flex flex-col justify-center items-start ml-2">
-                                <div className="flex justify-between items-center w-full">
-                                    <b className="text-left">{contact.contactUser.name || contact.contactUser.username || "Unnamed"}</b>
-                                    {contact.unreadCount > 0 && (
-                                        <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
-                                            {contact.unreadCount}
-                                        </span>
+                                <div className="relative">
+                                    <Image
+                                        className="w-10 p-2 border rounded-full hover:bg-white/50"
+                                        src={contact.contactUser.profilePic || "/vercel.svg"}
+                                        alt={contact.contactUser.name || "contact image"}
+                                        width={40}
+                                        height={40}
+                                    />
+                                    {/* Online status indicator */}
+                                    {isOnline && !contact.isGroup && (
+                                        <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                                     )}
                                 </div>
-                                <div className="flex justify-between items-center w-full">
-                                    <small className="text-left text-red-300">
-                                        {/* TODO: */}
-                                        {contact.lastMessageContent}
-                                    </small>
-                                    <small className="text-right text-red-400 text-xs">
-                                        {formatLastMessageTime(contact.lastMessageTime)}
-                                    </small>
+                                <div className="w-full cursor-pointer flex flex-col justify-center items-start ml-2">
+                                    <div className="flex justify-between items-center w-full">
+                                        <b className="text-left">{contact.isGroup ? contact.groupName : contact.contactUser.name || contact.contactUser.username || "Unnamed"}</b>
+                                        {contact.unreadCount > 0 && (
+                                            <span className="bg-red-500 text-white text-xs rounded-full px-2 py-1 min-w-[20px] text-center">
+                                                {contact.unreadCount}
+                                            </span>
+                                        )}
+                                    </div>
+                                    <div className="flex justify-between items-center w-full">
+                                        <small className="text-left text-red-300">
+                                            {/* TODO: */}
+                                            {contact.isGroup ? `${contact.lastMessageSender.username} : ` : ``}
+                                            {contact.lastMessageContent}
+                                        </small>
+                                        <small className="text-right text-red-400 text-xs">
+                                            {formatLastMessageTime(contact.lastMessageTime)}
+                                        </small>
+                                    </div>
+                                    {contact.isGroup && (
+                                        <small className="text-left text-blue-400 text-xs">
+                                            Group • {contact.participantCount} members
+                                        </small>
+                                    )}
                                 </div>
-                                {contact.isGroup && (
-                                    <small className="text-left text-blue-400 text-xs">
-                                        Group • {contact.participantCount} members
-                                    </small>
-                                )}
-                            </div>
-                        </li>
-                    );
-                })}
+                            </li>
+                        );
+                    })}
                 </ul>
             )}
         </div>

@@ -55,10 +55,12 @@ export async function GET(request) {
       // Get the last message content for display
       let lastMessageContent = "No messages yet";
       let lastMessageTime = conv.updatedAt;
+      let lastMessageSender = "No User"
       
       if (conv.lastMessage) {
         lastMessageContent = conv.lastMessage.content || "Media message";
         lastMessageTime = conv.lastMessage.createdAt;
+        lastMessageSender = conv.lastMessage.sender;
       }
 
       return {
@@ -68,6 +70,7 @@ export async function GET(request) {
         updatedAt: conv.updatedAt,
         lastMessageTime: lastMessageTime,
         lastMessageContent: lastMessageContent,
+        lastMessageSender: lastMessageSender,
         // Contact user information
         contactUser: {
           id: otherParticipant?._id,
@@ -81,6 +84,7 @@ export async function GET(request) {
         // Conversation metadata
         isGroup: conv.type === 'group',
         participantCount: conv.participants.length,
+        participants: conv.participants,
         // Unread count (if available)
         unreadCount: conv.metadata?.unreadCount?.get?.(currentUserId) || 0
       };

@@ -15,7 +15,7 @@ export async function GET() {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const users = await User.find({});
+    const users = await User.find({}).select('-password');
     // console.log(users)
     if (users && users.length > 0) {
       const filteredUsers = users.filter(

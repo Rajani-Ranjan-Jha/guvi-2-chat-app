@@ -12,10 +12,12 @@ import {
   LucideBell,
   LucideBellDot,
   MessagesSquare,
+  MessageCirclePlusIcon,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
+import { Tooltip } from "react-tooltip";
 
 import { useSocket } from "./components/SocketProvider";
 import { setAuth, setActiveUsers } from "./redux/authSlice";
@@ -27,7 +29,11 @@ import EnhancedChatTemplate from "./components/EnhancedChatTemplate";
 import { useRealTimeMessaging } from "./hooks/useRealTimeMessaging";
 
 export default function Home() {
+  // for addContact.jsx
   const [addbtn, setAddbtn] = useState(false);
+  const [isCreatingGroup, setIsCreatingGroup] = useState(false);
+
+
   const [isSidebarOpen, setisSidebarOpen] = useState(true);
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchTerm, setsearchTerm] = useState("");
@@ -45,7 +51,6 @@ export default function Home() {
   const dispatch = useDispatch();
   const userX = useSelector((state) => state.user.user);
 
-
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
@@ -53,7 +58,6 @@ export default function Home() {
         if (res.data?.user) {
           dispatch(setAuth(res.data));
           setUser(res.data.user);
-
         }
       } catch (error) {
         console.error("Error loading current user:", error);
@@ -65,16 +69,15 @@ export default function Home() {
 
   useEffect(() => {
     const setUserStatusOnline = async () => {
-      console.warn("setting status online")
+      console.warn("setting status online");
       try {
-        const res = await axios.post("/api/user/status",{
-          status: 'online'
+        const res = await axios.post("/api/user/status", {
+          status: "online",
         });
-        if(res.status != 200){
+        if (res.status != 200) {
           // console.error("something went wrong!")
-          return
+          return;
         }
-        
       } catch (error) {
         console.error("Error loading current user:", error);
       }
@@ -83,11 +86,9 @@ export default function Home() {
     // setUserStatusOnline();
   }, [user]);
 
-
-
-
-  const toggleAddContact = () => {
+  const toggleAddContact = (creatingAGroup=false) => {
     setAddbtn(!addbtn);
+    setIsCreatingGroup(creatingAGroup)
   };
   const toggleSidebar = () => {
     setisSidebarOpen(!isSidebarOpen);
@@ -122,6 +123,8 @@ export default function Home() {
 
   return (
     <div className="relative w-screen h-screen bg-transparent text-white flex justify-start items-center gradient-dark-blue">
+      <Tooltip id="page-tooltip" />
+
       {/* Fixed Sidebar - always visible except auth routes */}
       <aside
         className="flex fixed left-0 top-0 h-full"
@@ -172,10 +175,20 @@ export default function Home() {
               <h1 className="text-3xl">Chat Z</h1>
               <div className="space-x-2">
                 <button
-                  onClick={toggleAddContact}
+                  onClick={() => {toggleAddContact(false)}}
                   className="p-2 rounded-full hover:bg-white/50 cursor-pointer"
+                  data-tooltip-id="page-tooltip"
+                  data-tooltip-content="Create new contact"
                 >
                   <MessageSquarePlus />
+                </button>
+                <button
+                  onClick={() => {toggleAddContact(true)}}
+                  className="p-2 rounded-full hover:bg-white/50 cursor-pointer"
+                  data-tooltip-id="page-tooltip"
+                  data-tooltip-content="Create new group"
+                >
+                  <MessageCirclePlusIcon />
                 </button>
                 <button className="p-2 rounded-full hover:bg-white/50 cursor-pointer">
                   <MoreVertical />
@@ -257,7 +270,7 @@ export default function Home() {
             className="min-h-50 w-100 blur-2 p-2 rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <AddContacts onConversationCreate={handleConversationSelect} />
+            <AddContacts creatingAGroup={isCreatingGroup} onConversationCreate={handleConversationSelect} />
           </div>
         </div>
       )}

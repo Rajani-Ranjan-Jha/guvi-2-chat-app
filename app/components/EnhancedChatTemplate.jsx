@@ -22,10 +22,10 @@ const EnhancedChatTemplate = ({ conversationIdProp, contactData, onBack }) => {
 
       const formattedData = {
         id: conversationIdProp,
-        name: contactData.contactUser?.name || contactData.contactUser?.username || 'Chat',
-        participants: [contactData.contactUser?.id || contactData.contactUser?._id],
         isGroup: contactData.isGroup,
+        name: contactData.isGroup ? contactData.groupName : contactData.contactUser?.name || contactData.contactUser?.username || 'Chat',
         participantCount: contactData.participantCount || 1,
+        participants: contactData.participantCount > 2 ? contactData.participants : [contactData.contactUser?.id || contactData.contactUser?._id],
         lastMessage: contactData.lastMessageContent,
         lastMessageTime: contactData.lastMessageTime
       };
