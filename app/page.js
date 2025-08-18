@@ -43,8 +43,9 @@ export default function Home() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchTerm, setsearchTerm] = useState("");
 
-  // TODO: the current user
-  const [user, setUser] = useState({});
+  // Current user from Redux
+  const currentUser = useSelector((state) => state.user.user) || {};
+  // console.warn("Current user", currentUser)
   const [Onlineuser, setOnlineUser] = useState([]);
 
   // TODO: using socket
@@ -55,16 +56,12 @@ export default function Home() {
 
   const dispatch = useDispatch();
   const userX = useSelector((state) => state.user);
-  console.warn("user data", userX)
+  // console.warn("user data", userX)
 
   useEffect(() => {
     const loadCurrentUser = async () => {
       try {
         const res1 = await axios.get("/api/auth/session");
-        // if (res1.data?.user) {
-        //   dispatch(setAuth(res1.data));
-        //   setUser(res1.data.user);
-        // }
         const ID = await res1.data?.user?.id
         if(!ID) return
         // console.warn("Fetching with ID",ID)
@@ -72,7 +69,6 @@ export default function Home() {
         // console.log("INFO:",res2.data)
         if (res2.data) {
           dispatch(setUserInfo(res2.data));
-          setUser(res2.data);
         }
 
       } catch (error) {
@@ -108,7 +104,7 @@ export default function Home() {
       }
     }
     // getUserInfoById()
-  }, [user]);
+  }, [currentUser]);
 
   const toggleAddContact = (creatingAGroup=false) => {
     setAddbtn(!addbtn);
@@ -186,9 +182,9 @@ export default function Home() {
               <Image
                 className="w-5"
                 src={`${
-                  user && user.profilePic ? user.profilePic : "/vercel.svg"
+                  currentUser && currentUser.profilePic ? currentUser.profilePic : "/vercel.svg"
                 }`}
-                alt={`${user && user.name ? user.name : "User"}`}
+                alt={`${currentUser && currentUser.name ? currentUser.name : "User"}`}
                 width="5"
                 height="5"
               />
@@ -258,7 +254,7 @@ export default function Home() {
               width="5"
               height="5"
             />
-            <h2>{`${user ? user.name : "NOT AVAILABLE!"}`}</h2>
+            <h2>{`${currentUser && currentUser.name ? currentUser.name : "Loading.."}`}</h2>
             <button className="w-5">
               <Settings />
             </button>

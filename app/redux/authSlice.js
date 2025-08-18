@@ -16,13 +16,28 @@ const authSlice = createSlice({
       state.ActiveUsers = action.payload || []
     },
     setAuth: (state, action) => {
-      state.isAuthenticated = true;
-      state.user = action.payload.user;
-      state.token = action.payload.token;
+      // Support both shapes:
+      // 1) { user, token }
+      // 2) raw user object
+      const incomingUser = action.payload && action.payload.user
+        ? action.payload.user
+        : action.payload;
+
+      if (incomingUser) {
+        state.isAuthenticated = true;
+        state.user = incomingUser;
+      }
+      if (action.payload && action.payload.token) {
+        state.token = action.payload.token;
+      }
       state.loading = false;
     },
     setUserInfo: (state, action) => {
-      state.user = action.payload.user;
+      // Accept either { user } or a raw user object
+      state.user = action.payload && action.payload.user
+        ? action.payload.user
+        : action.payload;
+      state.loading = false;
     },
     
     setToken: (state, action) => {
@@ -39,7 +54,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.loading = false;
-      state.onlineUsers = []
+      state.ActiveUsers = []
     }
   }
 })

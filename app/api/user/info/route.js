@@ -27,7 +27,14 @@ export async function GET(request) {
       );
     }
 
-    return NextResponse.json(user, { status: 200 });
+    // Modify the response to change _id to id
+    const userResponse = user.toObject();
+    if (userResponse._id) {
+      userResponse.id = userResponse._id.toString();
+      delete userResponse._id;
+    }
+
+    return NextResponse.json(userResponse, { status: 200 });
   } catch (error) {
     console.error("Error in GET /api/user/info:", error);
     return NextResponse.json(

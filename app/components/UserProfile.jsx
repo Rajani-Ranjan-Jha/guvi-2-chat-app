@@ -9,31 +9,31 @@ import Image from 'next/image';
 const UserProfile = () => {
 
     const [profileData, setProfileData] = useState(null);
-    const user = useSelector((state) => state.user.user);
+    const user = useSelector((state) => state.user.user) || {};
     const dispatch = useDispatch();
 
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
 
-    const [NewName, setNewName] = useState(user.name);
-    const [NewAbout, setNewAbout] = useState(user.bio);
-    const [NewEmail, setNewEmail] = useState(user.email);
+    const [NewName, setNewName] = useState(user.name || "");
+    const [NewAbout, setNewAbout] = useState(user.bio || "");
+    const [NewEmail, setNewEmail] = useState(user.email || "");
 
     useEffect(() => {
-      if(user) {
+      if (user) {
         setProfileData(user);
-        setNewName(user.name);
-        setNewAbout(user.bio);
-        setNewEmail(user.email);
+        setNewName(user.name || "");
+        setNewAbout(user.bio || "");
+        setNewEmail(user.email || "");
       }
-    }, [])
+    }, [user])
     
 
 
     const updateProfile = async () => {
         try {
-            if(NewName === user.name && NewAbout === user.bio && NewEmail === user.email) {
+            if(NewName === (user.name || "") && NewAbout === (user.bio || "") && NewEmail === (user.email || "")) {
                 setError("No changes made to update.");
                 return;
             }
@@ -54,7 +54,6 @@ const UserProfile = () => {
                 throw new Error(response.statusText);
                 }
             const data = await response.json();
-            // console.warn("Profile updated successfully:", data);
             dispatch(setAuth(data));
             setProfileData(data);
             setLoading(false);
