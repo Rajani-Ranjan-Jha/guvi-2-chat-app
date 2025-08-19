@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRealTimeMessaging } from '@/app/hooks/useRealTimeMessaging';
 import { useSelector } from 'react-redux';
-import { Check, CheckCheck, Clock, User } from 'lucide-react';
+import { Check, CheckCheck, Clock, EditIcon, Trash2, User } from 'lucide-react';
 
 const RealTimeMessageList = ({
   conversationId,
   initialMessages = [],
+  ProvideMessageToEdit
 }) => {
   const messagesEndRef = useRef(null);
   const initialMessagesAddedRef = useRef(false);
@@ -83,6 +84,12 @@ const RealTimeMessageList = ({
     }
   };
 
+  const handleDeleteMessage = useCallback((messageId) => {
+    // if (!window.confirm("Are you sure you want to delete this message?")) return;
+    removeMessage(messageId);
+  }, [removeMessage]);
+
+
   // Render individual message
   const renderMessage = (message) => {
     // console.log("Rendering message:", message.content);
@@ -101,7 +108,7 @@ const RealTimeMessageList = ({
         data-message-sender={senderId}
         className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}
       >
-        <div 
+        <div
           className={`relative max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}
           onMouseEnter={() => setHoveredMessageId(messageId)}
           onMouseLeave={() => setHoveredMessageId((prev) => (prev === messageId ? null : prev))}
@@ -120,10 +127,10 @@ const RealTimeMessageList = ({
           )}
           {/* Floating action bar (absolute positioned so it doesn't shift layout) */}
           {hoveredMessageId === messageId && (
-            <div className={`absolute -top-4 ${isOwnMessage ? 'right-2' : 'left-2'} z-10`}> 
-              <div className="rounded-full bg-white shadow px-2 py-1 border border-gray-200">
-                <ul className="flex gap-2 text-base select-none">
-                  {['👍','🩷','😂','😯','😢','🙏'].map((emoji) => (
+            <div className={`absolute -top-4 ${isOwnMessage ? 'right-0' : 'left-0'} z-10`}>
+              <div className="rounded-full blur-1 shadow px-2 py-1 border border-gray-200">
+                <ul className="flex gap-0.5 text-base select-none justify-center items-center">
+                  {['👍', '🩷', '😂', '😯', '😢', '🙏'].map((emoji) => (
                     <li key={emoji}>
                       <button
                         type="button"
@@ -135,7 +142,30 @@ const RealTimeMessageList = ({
                       </button>
                     </li>
                   ))}
+                  <li className='ml-2'>
+                    <button
+                      type="button"
+                      className="hover:scale-110 transition-transform cursor-pointer"
+                      onClick={() => {isOwnMessage ? ProvideMessageToEdit(message) : null}}
+                      aria-label='edit message'
+                    >
+                      <EditIcon className="w-4 h-4 text-gray-200" />
+                    </button>
+                  </li>
+                  <li
+                  className='ml-2'>
+                    <button
+                      type="button"
+                      className="hover:scale-110 transition-transform cursor-pointer"
+                      onClick={() => handleDeleteMessage(messageId)}
+                      aria-label='delete message'
+                    >
+                      <Trash2 className="w-4 h-4 text-gray-200" />
+                    </button>
+                  </li>
                 </ul>
+
+
               </div>
             </div>
           )}

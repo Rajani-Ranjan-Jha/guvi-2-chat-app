@@ -1,14 +1,17 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { SendHorizonal, Paperclip, Smile } from 'lucide-react';
+import { SendHorizonal, Paperclip, Smile, EditIcon } from 'lucide-react';
 import { useSocket } from './SocketProvider';
 import CustomEmojiPicker from './EmojiPicker';
 
-const RealTimeMessageInput = ({ 
-  conversationId, 
-  onSendMessage, 
+const RealTimeMessageInput = ({
+  conversationId,
+  onSendMessage,
+  onEditMessage,
+  initialMessage = '',
+  haveToEdit = false,
   placeholder = "Type a message...",
-  disabled = false 
+  disabled = false
 }) => {
   const [message, setMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
@@ -17,6 +20,16 @@ const RealTimeMessageInput = ({
   const { startTyping, stopTyping } = useSocket();
   const typingTimeoutRef = useRef(null);
   const textareaRef = useRef(null);
+
+  // Update message when initialMessage or haveToEdit props change
+  useEffect(() => {
+    setMessage('');
+    if (haveToEdit && initialMessage) {
+      setMessage(initialMessage);
+    } else if (!haveToEdit) {
+      setMessage('');
+    }
+  }, [initialMessage, haveToEdit, disabled]);
 
   // Handle typing indicators
   useEffect(() => {
@@ -64,9 +77,9 @@ const RealTimeMessageInput = ({
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!message.trim() && attachments.length === 0) return;
-    
+
     const messageData = {
       content: message.trim(),
       attachments,
@@ -74,10 +87,17 @@ const RealTimeMessageInput = ({
     };
 
     try {
-      await onSendMessage(messageData);
+      if (haveToEdit) {
+        // If editing a message, call the edit handler
+        await onEditMessage(messageData.content);
+      }
+      // If sending a new message, call the send handler
+      else {
+        await onSendMessage(messageData);
+      }
       setMessage('');
       setAttachments([]);
-      
+
       // Stop typing indicator
       setIsTyping(false);
       stopTyping(conversationId);
@@ -102,7 +122,7 @@ const RealTimeMessageInput = ({
       // const newMessage = message + emoji; // Append emoji at the end
       // console.warn("New message with emoji:", newMessage);
       setMessage(newMessage);
-      
+
       // Set cursor position after the inserted emoji
       setTimeout(() => {
         textarea.focus();
@@ -178,9 +198,9 @@ const RealTimeMessageInput = ({
             disabled={disabled}
             rows={1}
           />
-          
+
           {showEmojiPicker && (
-            <CustomEmojiPicker 
+            <CustomEmojiPicker
               onEmojiSelect={handleEmojiSelect}
               onClose={() => setShowEmojiPicker(false)}
             />
@@ -203,11 +223,13 @@ const RealTimeMessageInput = ({
           disabled={disabled || (!message.trim() && attachments.length === 0)}
           className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
-          <SendHorizonal className="w-5 h-5" />
+          {haveToEdit ?
+            <EditIcon className="w-5 h-5" /> : <SendHorizonal className="w-5 h-5" />
+          }
         </button>
       </form>
 
-      
+
     </div>
   );
 };

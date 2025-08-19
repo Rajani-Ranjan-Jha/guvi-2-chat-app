@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useSocket } from './SocketProvider';
 import RealTimeMessageList from './RealTimeMessageList';
@@ -17,6 +17,11 @@ const RealTimeChat = ({
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Edit
+  const [messageToEdit, setMessageToEdit] = useState(null);
+  const [haveToEdit, setHaveToEdit] = useState(false);
+
 
   const user = useSelector((state) => state.user.user);
   // TODO: online users
@@ -46,6 +51,8 @@ const RealTimeChat = ({
       console.log('No conversationId provided to RealTimeChat');
       return;
     }
+
+    setMessageToEdit(null);
 
     const fetchMessages = async () => {
       try {
@@ -138,6 +145,67 @@ const RealTimeChat = ({
     }
   };
 
+  // Handle editing messages
+  const handleEditMessage = async (newContent) => {
+    if (!conversationId || !user || !messageToEdit) return;
+    
+    const messageId = messageToEdit._id || messageToEdit.id;
+    console.warn("Editing message:", messageId, "with content:", newContent);
+    
+    try {
+      // Optimistically update message in local state
+      setMessages(prev =>
+        prev.map(msg =>
+          msg._id === messageId ? { ...msg, content: newContent } : msg
+        )
+      );
+      
+      // Send edit request to API
+      const response = await fetch('/api/messages/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'edit', messageId: messageId, content: newContent }),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to edit message');
+      }
+      
+      const result = await response.json();
+      
+      // Update the message with the result from the server
+      setMessages(prev =>
+        prev.map(msg =>
+          msg._id === messageId ? { ...msg, ...result.data } : msg
+        )
+      );
+      
+      // Reset editing state
+      setMessageToEdit(null);
+      setHaveToEdit(false);
+      
+    } catch (error) {
+      console.error('Error editing message:', error);
+      // Show error notification
+      alert('Failed to edit message. Please try again!');
+      
+      // Revert optimistic update
+      setMessages(prev =>
+        prev.map(msg =>
+          msg._id === messageId ? { ...msg, content: messageToEdit.content } : msg
+        )
+      );
+    }
+  };
+
+  // Take message to edit
+  const TakeMessageToEdit = (message)=>{
+    console.warn("Taking message to edit:", message);
+    setMessageToEdit(message);
+    setHaveToEdit(true);
+  }
+
+
   // Handle back navigation
   const handleBack = () => {
     if (onBack) {
@@ -221,6 +289,7 @@ const RealTimeChat = ({
           <RealTimeMessageList
             conversationId={conversationId}
             initialMessages={messages}
+            ProvideMessageToEdit={TakeMessageToEdit}
           />
         )}
       </div>
@@ -230,8 +299,11 @@ const RealTimeChat = ({
         <RealTimeMessageInput
           conversationId={conversationId}
           onSendMessage={handleSendMessage}
+          onEditMessage={handleEditMessage}
           placeholder="Type a message..."
           disabled={isLoading}
+          haveToEdit={haveToEdit}
+          initialMessage={haveToEdit && messageToEdit ? messageToEdit.content : ''}
         />
       </div>
     </div>
