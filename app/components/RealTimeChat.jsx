@@ -26,7 +26,7 @@ const RealTimeChat = ({
   const user = useSelector((state) => state.user.user);
   // TODO: online users
   const active = useSelector((state) => state.user.ActiveUsers);
-  // console.warn("Active users in RealTimeChat:", active);
+  // console.warn("Active users in RealTimeChat:", conversationData);
 
 
   const { socket, sendMessage, markMessageAsRead, joinConversation, leaveConversation } = useSocket();
@@ -200,7 +200,7 @@ const RealTimeChat = ({
 
   // Take message to edit
   const TakeMessageToEdit = (message)=>{
-    console.warn("Taking message to edit:", message);
+    // console.warn("Taking message to edit:", message);
     setMessageToEdit(message);
     setHaveToEdit(true);
   }
@@ -253,7 +253,7 @@ const RealTimeChat = ({
                 {conversationData?.name || 'Chat'}
               </h2>
               <p className="text-sm">
-                {conversationData?.participants?.length > 1 ? `${conversationData?.participants?.length} participants` : 
+                {conversationData?.participants?.length > 1 ? `${conversationData?.participants?.length} members` : 
                 `${active.includes(conversationData?.participants[0]) ? 'Online' : 'Offline'}`}
               </p>
             </div>
@@ -290,12 +290,13 @@ const RealTimeChat = ({
             conversationId={conversationId}
             initialMessages={messages}
             ProvideMessageToEdit={TakeMessageToEdit}
+            isAGroup={conversationData?.isGroup}
           />
         )}
       </div>
 
       {/* Message Input */}
-      <div className="p-4 border-t">
+      <div className="">
         <RealTimeMessageInput
           conversationId={conversationId}
           onSendMessage={handleSendMessage}

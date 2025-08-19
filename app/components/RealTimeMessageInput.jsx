@@ -172,9 +172,20 @@ const RealTimeMessageInput = ({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3">
+      <form onSubmit={handleSubmit} className="flex items-center gap-2 p-3">
+
+        {/* Emoji button */}
+        <button
+          type="button"
+          className="p-2 rounded-full text-gray-100 hover:text-gray-400 hover:bg-white/50 cursor-pointer transition-colors relative"
+          disabled={disabled}
+          onClick={() => setShowEmojiPicker(prev => prev == false ? !prev : null)}
+        >
+          <Smile className="w-5 h-5" />
+        </button>
+        
         {/* File upload button */}
-        <label className="cursor-pointer p-2 text-gray-500 hover:text-gray-700 transition-colors">
+        <label className="p-2 rounded-full text-gray-100 hover:text-gray-400 hover:bg-white/50 cursor-pointer transition-colors">
           <Paperclip className="w-5 h-5" />
           <input
             type="file"
@@ -190,7 +201,7 @@ const RealTimeMessageInput = ({
         <div className="flex-1 relative">
           <textarea
             ref={textareaRef}
-            className="w-full resize-none border-0 focus:ring-0 focus:outline-none p-2 min-h-[40px] max-h-32"
+            className="w-full disabled:cursor-not-allowed resize-none border-0 focus:ring-0 focus:outline-none p-2"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             onKeyPress={handleKeyPress}
@@ -207,21 +218,13 @@ const RealTimeMessageInput = ({
           )}
         </div>
 
-        {/* Emoji button */}
-        <button
-          type="button"
-          className="p-2 text-gray-500 hover:text-gray-700 transition-colors relative"
-          disabled={disabled}
-          onClick={() => setShowEmojiPicker(prev => prev == false ? !prev : null)}
-        >
-          <Smile className="w-5 h-5" />
-        </button>
+        
 
         {/* Send button */}
         <button
           type="submit"
           disabled={disabled || (!message.trim() && attachments.length === 0)}
-          className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+          className="p-2 bg-blue-600 text-white rounded-full hover:bg-blue-700 disabled:bg-white/50 disabled:cursor-not-allowed cursor-pointer transition-colors"
         >
           {haveToEdit ?
             <EditIcon className="w-5 h-5" /> : <SendHorizonal className="w-5 h-5" />

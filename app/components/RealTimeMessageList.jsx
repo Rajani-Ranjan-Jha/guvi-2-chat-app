@@ -7,7 +7,9 @@ import { Check, CheckCheck, Clock, EditIcon, Trash2, User } from 'lucide-react';
 const RealTimeMessageList = ({
   conversationId,
   initialMessages = [],
-  ProvideMessageToEdit
+  ProvideMessageToEdit,
+  isAGroup = false
+
 }) => {
   const messagesEndRef = useRef(null);
   const initialMessagesAddedRef = useRef(false);
@@ -21,6 +23,9 @@ const RealTimeMessageList = ({
 
   // to manage message action menu visibility per message
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
+
+  // to manage the grouping of message based on date
+  const [AlreadyUsed, setAlreadyUsed] = useState('');
 
 
   const {
@@ -72,12 +77,22 @@ const RealTimeMessageList = ({
   const formatTime = (timestamp) => {
     if (!timestamp) return '';
     const date = new Date(timestamp);
-    const now = new Date();
-    const diffInHours = (now - date) / (1000 * 60 * 60);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+  };
 
-    if (diffInHours < 24) {
-      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    } else if (diffInHours < 48) {
+  const getDateGroup = (timestamp) => {
+    if (!timestamp) return '';
+    const date = new Date(timestamp);
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    
+    const diffTime = today - messageDate;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 0) {
+      return 'Today';
+    } else if (diffDays === 1) {
       return 'Yesterday';
     } else {
       return date.toLocaleDateString();
@@ -89,10 +104,41 @@ const RealTimeMessageList = ({
     removeMessage(messageId);
   }, [removeMessage]);
 
+  // Group messages by date
+  const groupMessagesByDate = (messages) => {
+    const groups = {};
+    
+    messages.forEach(message => {
+      const date = new Date(message.timestamp || message.createdAt);
+      const dateKey = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
+      
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
+      }
+      groups[dateKey].push(message);
+    });
+    
+    return Object.entries(groups).sort(([a], [b]) => new Date(a) - new Date(b));
+  };
+
+  // Render message group with date header
+  const renderMessageGroup = (dateKey, messages) => {
+    const dateGroup = getDateGroup(messages[0].timestamp || messages[0].createdAt);
+    
+    return (
+      <div key={dateKey} className="space-y-4">
+        <div className="flex justify-center">
+          <div className="bg-white/20 text-xs px-2 py-1 rounded-md">
+            {dateGroup}
+          </div>
+        </div>
+        {messages.map(message => renderMessage(message))}
+      </div>
+    );
+  };
 
   // Render individual message
   const renderMessage = (message) => {
-    // console.log("Rendering message:", message.content);
     const isOwnMessage = message.sender === user?.id || message.sender?._id === user?.id;
     const senderName = message.senderName || message.sender?.name || 'Unknown User';
     const senderId = message.sender?._id || message.sender;
@@ -114,7 +160,7 @@ const RealTimeMessageList = ({
           onMouseLeave={() => setHoveredMessageId((prev) => (prev === messageId ? null : prev))}
         >
           {/* Sender info for group chats */}
-          {!isOwnMessage && (
+          {!isOwnMessage && isAGroup && (
             <div className="flex items-center gap-2 mb-1">
               <div className="relative">
                 <User className="w-4 h-4 text-gray-500" />
@@ -122,19 +168,20 @@ const RealTimeMessageList = ({
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                 )}
               </div>
-              <span className="text-xs text-gray-500">{senderName}</span>
+              <span className="text-sm font-medium text-gray-200">{senderName}</span>
             </div>
           )}
-          {/* Floating action bar (absolute positioned so it doesn't shift layout) */}
+          
+          {/* Floating action bar */}
           {hoveredMessageId === messageId && (
-            <div className={`absolute -top-4 ${isOwnMessage ? 'right-0' : 'left-0'} z-10`}>
+            <div className={`absolute -top-4 ${isOwnMessage ? 'right-0' : 'left-0'} z-100`}>
               <div className="rounded-full blur-1 shadow px-2 py-1 border border-gray-200">
                 <ul className="flex gap-0.5 text-base select-none justify-center items-center">
                   {['👍', '🩷', '😂', '😯', '😢', '🙏'].map((emoji) => (
                     <li key={emoji}>
                       <button
                         type="button"
-                        className="hover:scale-110 transition-transform"
+                        className="hover:scale-120 z-100 transition-transform"
                         onClick={() => reactToMessage(conversationId, messageId, emoji)}
                         aria-label={`React ${emoji}`}
                       >
@@ -145,15 +192,14 @@ const RealTimeMessageList = ({
                   <li className='ml-2'>
                     <button
                       type="button"
-                      className="hover:scale-110 transition-transform cursor-pointer"
-                      onClick={() => {isOwnMessage ? ProvideMessageToEdit(message) : null}}
+                      className="hover:scale-120 transition-transform cursor-pointer"
+                      onClick={() => { isOwnMessage ? ProvideMessageToEdit(message) : null }}
                       aria-label='edit message'
                     >
                       <EditIcon className="w-4 h-4 text-gray-200" />
                     </button>
                   </li>
-                  <li
-                  className='ml-2'>
+                  <li className='ml-2'>
                     <button
                       type="button"
                       className="hover:scale-110 transition-transform cursor-pointer"
@@ -164,12 +210,9 @@ const RealTimeMessageList = ({
                     </button>
                   </li>
                 </ul>
-
-
               </div>
             </div>
           )}
-
 
           {/* Message bubble */}
           <div
@@ -194,7 +237,7 @@ const RealTimeMessageList = ({
               </div>
             )}
 
-            {/* Reactions display (inline, non-shifting) */}
+            {/* Reactions display */}
             {reactions.length > 0 && (
               <div className="mt-1 flex flex-wrap gap-1">
                 {reactions.map((r) => {
@@ -240,8 +283,9 @@ const RealTimeMessageList = ({
           <p>No messages yet. Start the conversation!</p>
         </div>
       ) : (
-        messages.map((message) => renderMessage(message))
-        // messagesHook && renderMessage(messagesHook)
+        groupMessagesByDate(messages).map(([dateKey, messages]) => 
+          renderMessageGroup(dateKey, messages)
+        )
       )}
 
       {/* Typing indicators */}
