@@ -81,7 +81,7 @@ export async function POST(request) {
       // TODO:
       readBy: [],
       metadata: {
-        isDelivered: false,
+        isDelivered: true,
         isRead: false,
         readBy: [],
         reactions: []

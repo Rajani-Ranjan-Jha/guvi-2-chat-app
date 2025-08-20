@@ -13,6 +13,18 @@ const RealTimeChat = ({
   onBack 
 }) => {
 
+  const {socket,
+    isConnected,
+    joinConversation,
+    leaveConversation,
+    sendMessage,
+    markMessageAsRead,
+    markMessageAsDelivered,
+    startTyping,
+    stopTyping,} = useSocket();
+
+  const router = useRouter();
+
   
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -29,8 +41,7 @@ const RealTimeChat = ({
   // console.warn("Active users in RealTimeChat:", conversationData);
 
 
-  const { socket, sendMessage, markMessageAsRead, joinConversation, leaveConversation } = useSocket();
-  const router = useRouter();
+  
 
   // Join conversation when component mounts
   useEffect(() => {
@@ -82,7 +93,6 @@ const RealTimeChat = ({
   // Handle sending messages
   const handleSendMessage = async (messageData) => {
     if (!conversationId || !user) return;
-
     try {
       // Optimistically add message to local state
       const optimisticMessage = {
@@ -131,6 +141,8 @@ const RealTimeChat = ({
           msg._id === optimisticMessage._id ? result.data : msg
         )
       );
+
+      markMessageAsDelivered(conversationId, result.data._id);
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -204,7 +216,6 @@ const RealTimeChat = ({
     setMessageToEdit(message);
     setHaveToEdit(true);
   }
-
 
   // Handle back navigation
   const handleBack = () => {

@@ -147,7 +147,7 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
         } else if (isYesterday) {
             return 'Yesterday';
         } else {
-            return date.toLocaleDateString();
+            return date.toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' })
         }
 
     };

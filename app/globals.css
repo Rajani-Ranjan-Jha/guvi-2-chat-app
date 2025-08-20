@@ -30,7 +30,7 @@ body {
   background-image: linear-gradient(to right bottom , rgb(172, 172, 247), rgb(88, 88, 212), blue);
 }
 .gradient-dark-blue{
-  background: conic-gradient(at bottom right, #1d4ed8, #1e40af, #111827);
+  background: conic-gradient(at bottom right, #d81d1d, #af1e1e, #271111);
 }
 
 .blur-1 {
@@ -38,7 +38,7 @@ body {
   background-color: transparent;
   /* background-clip: padding-box; */
   backdrop-filter: blur(10px);
-  opacity: 80%;
+  opacity: 100%;
 }
 .blur-2{
   background-color: rgba(150, 150, 150, 0.479);

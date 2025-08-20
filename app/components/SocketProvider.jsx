@@ -110,6 +110,13 @@ export const SocketProvider = ({ children }) => {
     }
   };
 
+  // Mark message as read
+  const markMessageAsDelivered = (conversationId, messageId) => {
+    if (socket && isConnected) {
+      socket.emit('mark-delivered', { conversationId, messageId});
+    }
+  };
+
   // Start typing indicator
   const startTyping = (conversationId) => {
     if (socket && isConnected) {
@@ -135,6 +142,7 @@ export const SocketProvider = ({ children }) => {
     leaveConversation,
     sendMessage,
     markMessageAsRead,
+    markMessageAsDelivered,
     startTyping,
     stopTyping,
   };

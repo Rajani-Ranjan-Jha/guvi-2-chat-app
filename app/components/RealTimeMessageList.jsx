@@ -3,6 +3,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useRealTimeMessaging } from '@/app/hooks/useRealTimeMessaging';
 import { useSelector } from 'react-redux';
 import { Check, CheckCheck, Clock, EditIcon, Trash2, User } from 'lucide-react';
+import { useSocket } from './SocketProvider';
 
 const RealTimeMessageList = ({
   conversationId,
@@ -24,8 +25,15 @@ const RealTimeMessageList = ({
   // to manage message action menu visibility per message
   const [hoveredMessageId, setHoveredMessageId] = useState(null);
 
-  // to manage the grouping of message based on date
-  const [AlreadyUsed, setAlreadyUsed] = useState('');
+
+  const { socket,
+    joinConversation,
+    leaveConversation,
+    sendMessage,
+    markMessageAsRead,
+    markMessageAsDelivered,
+    startTyping,
+    stopTyping, } = useSocket();
 
 
   const {
@@ -37,7 +45,8 @@ const RealTimeMessageList = ({
     removeMessage,
     isUserOnline,
     isConnected,
-    reactToMessage
+    reactToMessage,
+    makeNewMessageRead
   } = useRealTimeMessaging(conversationId);
 
   // Initialize messages with initial data (only once)
@@ -72,6 +81,11 @@ const RealTimeMessageList = ({
     }
   }, [typingUsers]);
 
+  const handleDeleteMessage = useCallback((messageId) => {
+    // if (!window.confirm("Are you sure you want to delete this message?")) return;
+    removeMessage(messageId);
+  }, [removeMessage]);
+
 
 
   const formatTime = (timestamp) => {
@@ -86,7 +100,7 @@ const RealTimeMessageList = ({
     const now = new Date();
     const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const messageDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-    
+
     const diffTime = today - messageDate;
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
@@ -95,36 +109,31 @@ const RealTimeMessageList = ({
     } else if (diffDays === 1) {
       return 'Yesterday';
     } else {
-      return date.toLocaleDateString();
+      return date.toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' });
     }
   };
-
-  const handleDeleteMessage = useCallback((messageId) => {
-    // if (!window.confirm("Are you sure you want to delete this message?")) return;
-    removeMessage(messageId);
-  }, [removeMessage]);
 
   // Group messages by date
   const groupMessagesByDate = (messages) => {
     const groups = {};
-    
+
     messages.forEach(message => {
       const date = new Date(message.timestamp || message.createdAt);
       const dateKey = new Date(date.getFullYear(), date.getMonth(), date.getDate()).toISOString();
-      
+
       if (!groups[dateKey]) {
         groups[dateKey] = [];
       }
       groups[dateKey].push(message);
     });
-    
+
     return Object.entries(groups).sort(([a], [b]) => new Date(a) - new Date(b));
   };
 
   // Render message group with date header
   const renderMessageGroup = (dateKey, messages) => {
     const dateGroup = getDateGroup(messages[0].timestamp || messages[0].createdAt);
-    
+
     return (
       <div key={dateKey} className="space-y-4">
         <div className="flex justify-center">
@@ -137,6 +146,20 @@ const RealTimeMessageList = ({
     );
   };
 
+
+  // read receipts
+  const handleReadReceipts = (message) => {
+    if (message.metadata?.isRead) {
+      return <div className=''>
+        <CheckCheck className="w-4 h-4 text-blue-500" />
+      </div>
+    } else {
+      return <div className=''>
+        <CheckCheck className="w-4 h-4 text-gray-400" />
+      </div>
+    }
+  }
+
   // Render individual message
   const renderMessage = (message) => {
     const isOwnMessage = message.sender === user?.id || message.sender?._id === user?.id;
@@ -146,6 +169,13 @@ const RealTimeMessageList = ({
     const messageId = message._id || message.id;
     const reactions = message.metadata?.reactions || [];
     const myId = user?.id ? String(user.id) : null;
+
+    // read the message:
+    if(socket && !isOwnMessage && !message.metadata?.isRead && markMessageAsRead){
+      // console.warn(`SENDING '${message.content}: ${message.metadata?.isRead}' to mark as read`);
+      markMessageAsRead(conversationId,messageId)
+    }
+
 
     return (
       <div
@@ -171,7 +201,7 @@ const RealTimeMessageList = ({
               <span className="text-sm font-medium text-gray-200">{senderName}</span>
             </div>
           )}
-          
+
           {/* Floating action bar */}
           {hoveredMessageId === messageId && (
             <div className={`absolute -top-4 ${isOwnMessage ? 'right-0' : 'left-0'} z-100`}>
@@ -217,7 +247,7 @@ const RealTimeMessageList = ({
           {/* Message bubble */}
           <div
             className={`rounded-2xl px-4 py-2 ${isOwnMessage
-              ? 'bg-green-600 text-white rounded-br-none'
+              ? 'blur-1 shadow-lg shadow-white text-white rounded-br-none'
               : 'bg-gray-200 text-gray-800 rounded-bl-none'
               }`}
           >
@@ -256,8 +286,13 @@ const RealTimeMessageList = ({
             )}
 
             {/* Message metadata */}
-            <div className={`flex items-center justify-between mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+            <div className={`flex items-center justify-between gap-2 mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
               <span>{formatTime(message.timestamp || message.createdAt)}</span>
+              {
+                isOwnMessage && (
+                  <span className='justify-self-end'>{handleReadReceipts(message)}</span>
+                )
+              }
             </div>
           </div>
         </div>
@@ -283,7 +318,7 @@ const RealTimeMessageList = ({
           <p>No messages yet. Start the conversation!</p>
         </div>
       ) : (
-        groupMessagesByDate(messages).map(([dateKey, messages]) => 
+        groupMessagesByDate(messages).map(([dateKey, messages]) =>
           renderMessageGroup(dateKey, messages)
         )
       )}

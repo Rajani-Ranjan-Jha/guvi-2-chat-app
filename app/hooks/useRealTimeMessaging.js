@@ -17,7 +17,7 @@ export const useRealTimeMessaging = (conversationId) => {
 
   // Add message OLD to the list
   const addMessage = useCallback((messages) => {
-    console.warn("Loading messages!");
+    console.warn("Loading initial messages!");
     if (Array.isArray(messages)) {
       setMessages(messages);
     } else {
@@ -72,7 +72,7 @@ export const useRealTimeMessaging = (conversationId) => {
       }
     } catch (error) {
       console.error("Error while Deleting the message:", error);
-      return
+      return;
     }
   }, []);
 
@@ -234,7 +234,7 @@ export const useRealTimeMessaging = (conversationId) => {
 
     // Handle initial online users list
     const handleOnlineUsersList = (userIds) => {
-      console.log("Hook: Received online users list:", userIds);
+      // console.log("Hook: Received online users list:", userIds);
       // TODO: adding online users into the redux
       const onlineSet = new Set(userIds.map((id) => String(id)));
       setOnlineUsers(onlineSet);
@@ -271,35 +271,29 @@ export const useRealTimeMessaging = (conversationId) => {
     };
 
     // Handle message read receipts
-    const handleMessageRead = (data) => {
-      console.warn("handleMessageRead RUN", data);
-
+    const handleMessageRead = async (data) => {
+      // console.warn("handleMessageRead RUN", data);
       if (data.conversationId === conversationId) {
-        console.log(
-          "Updating message read status:",
-          data.messageId,
-          "for user:",
-          data.userId
-        );
-        console.log("Current messages:", messages);
+        // mark read locally
         setMessages((prev) => {
           const updated = prev.map((msg) => {
             const matches =
               msg._id === data.messageId || msg.id === data.messageId;
-            console.log(
-              `Message ${msg._id || msg.id} matches ${data.messageId}:`,
-              matches
-            );
             return matches
               ? {
                   ...msg,
-                  readBy: [...(msg.readBy || []), data.userId].filter(
-                    (id, index, arr) => arr.indexOf(id) === index
-                  ), // Remove duplicates
+                  metadata: {
+                    ...(msg.metadata || {}),
+                    isRead: true,
+                    readBy: [
+                      ...(msg.metadata.readBy || []),
+                      data.userId,
+                    ].filter((id, index, arr) => arr.indexOf(id) === index),
+                  },
                 }
               : msg;
           });
-          console.log("Updated messages after read:", updated);
+          // console.log("Updated messages after read:", updated);
           return updated;
         });
       }
@@ -309,16 +303,10 @@ export const useRealTimeMessaging = (conversationId) => {
     const handleMessageDelivered = (data) => {
       console.warn("handleMessageDelivered RUN", data);
       if (data.conversationId === conversationId) {
-        console.log("Updating message delivery status:", data.messageId);
-        console.log("Current messages:", messages);
         setMessages((prev) => {
           const updated = prev.map((msg) => {
             const matches =
               msg._id === data.messageId || msg.id === data.messageId;
-            console.log(
-              `Message ${msg._id || msg.id} matches ${data.messageId}:`,
-              matches
-            );
             return matches
               ? {
                   ...msg,
@@ -329,7 +317,7 @@ export const useRealTimeMessaging = (conversationId) => {
                 }
               : msg;
           });
-          console.log("Updated messages after delivery:", updated);
+          // console.log("Updated messages after delivery:", updated);
           return updated;
         });
       }

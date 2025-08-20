@@ -133,7 +133,7 @@ app.prepare().then(() => {
       //   userId
       // });
       // TODO:
-      io.to(conversationId).emit('message-read', {
+      socket.to(conversationId).emit('message-read', {
         conversationId,
         messageId,
         userId
@@ -141,14 +141,14 @@ app.prepare().then(() => {
     });
 
     // Handle message delivery confirmation
-    socket.on('message-delivered', (data) => {
+    socket.on('mark-delivered', (data) => {
       const { conversationId, messageId } = data;
       // socket.to(conversationId).emit('message-delivered', {
       //   conversationId,
       //   messageId
       // });
       // TODO:
-      io.to(conversationId).emit('message-delivered', {
+      socket.to(conversationId).emit('message-delivered', {
         conversationId,
         messageId
       });
