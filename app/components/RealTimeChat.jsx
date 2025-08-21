@@ -6,33 +6,34 @@ import RealTimeMessageList from './RealTimeMessageList';
 import RealTimeMessageInput from './RealTimeMessageInput';
 import { Phone, Video, MoreVertical, Search, ArrowLeft } from 'lucide-react';
 import { useRouter } from 'next/navigation';
+import axios from 'axios';
 
-const RealTimeChat = ({ 
-  conversationId, 
+const RealTimeChat = ({
+  conversationId,
   conversationData,
-  onBack 
+  activex,
+  onBack
 }) => {
 
-  const {socket,
-    isConnected,
+  const { socket,
     joinConversation,
     leaveConversation,
     sendMessage,
-    markMessageAsRead,
     markMessageAsDelivered,
-    startTyping,
-    stopTyping,} = useSocket();
+ } = useSocket();
 
   const router = useRouter();
 
-  
+
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  
+
   // Edit
   const [messageToEdit, setMessageToEdit] = useState(null);
   const [haveToEdit, setHaveToEdit] = useState(false);
+
+
 
 
   const user = useSelector((state) => state.user.user);
@@ -41,18 +42,25 @@ const RealTimeChat = ({
   // console.warn("Active users in RealTimeChat:", conversationData);
 
 
-  
+
 
   // Join conversation when component mounts
   useEffect(() => {
+
+
+
     if (conversationId && socket) {
       joinConversation(conversationId);
     }
+
+
 
     return () => {
       if (conversationId && socket) {
         leaveConversation(conversationId);
       }
+
+
     };
   }, [conversationId, socket, joinConversation, leaveConversation]);
 
@@ -68,16 +76,17 @@ const RealTimeChat = ({
     const fetchMessages = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch(`/api/conversations/${conversationId}/messages`);
-        
+        // const response = await fetch(`/api/conversations/${conversationId}/messages`);
+        const response = await fetch(`/api/conversation/messages?id=${conversationId}` );
+
         if (!response.ok) {
           throw new Error(`Failed to fetch messages: ${response.status} ${response.statusText}`);
         }
-        
+
         const data = await response.json();
         setMessages(data.messages || []);
       } catch (err) {
-        console.error('RealTimeChat: Error fetching messages:', err);
+        console.error('Error fetching messages:', err);
         setError(err.message);
         // Set empty messages array on error instead of failing completely
         setMessages([]);
@@ -103,7 +112,7 @@ const RealTimeChat = ({
         attachments: messageData.attachments,
         timestamp: messageData.timestamp,
         senderName: user.name || user.username,
-        readBy:[],
+        readBy: [],
         metadata: {
           isDelivered: false,
           isRead: false
@@ -134,10 +143,10 @@ const RealTimeChat = ({
       }
 
       const result = await response.json();
-      
+
       // Update the optimistic message with the real one
-      setMessages(prev => 
-        prev.map(msg => 
+      setMessages(prev =>
+        prev.map(msg =>
           msg._id === optimisticMessage._id ? result.data : msg
         )
       );
@@ -146,12 +155,12 @@ const RealTimeChat = ({
 
     } catch (error) {
       console.error('Error sending message:', error);
-      
+
       // Remove optimistic message on error
-      setMessages(prev => 
+      setMessages(prev =>
         prev.filter(msg => msg._id !== optimisticMessage._id)
       );
-      
+
       // You could show a toast notification here
       alert('Failed to send message. Please try again!');
     }
@@ -160,10 +169,10 @@ const RealTimeChat = ({
   // Handle editing messages
   const handleEditMessage = async (newContent) => {
     if (!conversationId || !user || !messageToEdit) return;
-    
+
     const messageId = messageToEdit._id || messageToEdit.id;
     console.warn("Editing message:", messageId, "with content:", newContent);
-    
+
     try {
       // Optimistically update message in local state
       setMessages(prev =>
@@ -171,36 +180,36 @@ const RealTimeChat = ({
           msg._id === messageId ? { ...msg, content: newContent } : msg
         )
       );
-      
+
       // Send edit request to API
       const response = await fetch('/api/messages/actions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'edit', messageId: messageId, content: newContent }),
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to edit message');
       }
-      
+
       const result = await response.json();
-      
+
       // Update the message with the result from the server
       setMessages(prev =>
         prev.map(msg =>
           msg._id === messageId ? { ...msg, ...result.data } : msg
         )
       );
-      
+
       // Reset editing state
       setMessageToEdit(null);
       setHaveToEdit(false);
-      
+
     } catch (error) {
       console.error('Error editing message:', error);
       // Show error notification
       alert('Failed to edit message. Please try again!');
-      
+
       // Revert optimistic update
       setMessages(prev =>
         prev.map(msg =>
@@ -211,7 +220,7 @@ const RealTimeChat = ({
   };
 
   // Take message to edit
-  const TakeMessageToEdit = (message)=>{
+  const TakeMessageToEdit = (message) => {
     // console.warn("Taking message to edit:", message);
     setMessageToEdit(message);
     setHaveToEdit(true);
@@ -253,9 +262,9 @@ const RealTimeChat = ({
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          
+
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-semibold">
+            <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-blue-500 rounded-full flex items-center justify-center text-white font-semibold">
               {conversationData?.name?.charAt(0) || 'C'}
             </div>
             <div>
@@ -264,8 +273,8 @@ const RealTimeChat = ({
                 {conversationData?.name || 'Chat'}
               </h2>
               <p className="text-sm">
-                {conversationData?.participants?.length > 1 ? `${conversationData?.participants?.length} members` : 
-                `${active.includes(conversationData?.participants[0]) ? 'Online' : 'Offline'}`}
+                {conversationData?.participants?.length > 1 ? `${conversationData?.participants?.length} members` :
+                  `${active.includes(conversationData?.participants[0]) ? 'Online' : 'Offline'}`}
               </p>
             </div>
           </div>
@@ -292,8 +301,8 @@ const RealTimeChat = ({
         {isLoading ? (
           <div className="flex items-center justify-center h-full">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-gray-500">Loading messages...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+              <p className="text-gray-300">Loading messages...</p>
             </div>
           </div>
         ) : (

@@ -1,31 +1,14 @@
 import NextAuth from "next-auth";
 import bcrypt from "bcryptjs";
-import { MongoDBAdapter } from "@next-auth/mongodb-adapter";
 
-import FacebookProvider from "next-auth/providers/facebook";
-import GoogleProvider from "next-auth/providers/google";
-import GithubProvider from "next-auth/providers/github";
 import CredentialsProvider from "next-auth/providers/credentials";
 
-import User from "../../../../models/user";
-import ConnectToDB from "../../../../utils/connect";
-import clientPromise from "../../../../utils/mongodb";
+import ConnectToDB from "@/utils/connect";
+import User from "@/models/user";
 
 export const authOptions = {
-  adapter: MongoDBAdapter(clientPromise),
+  // adapter: MongoDBAdapter(clientPromise),
   providers: [
-    FacebookProvider({
-      clientId: process.env.FACEBOOK_CLIENT_ID,
-      clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-    }),
-    GithubProvider({
-      clientId: process.env.GITHUB_ID,
-      clientSecret: process.env.GITHUB_SECRET,
-    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
@@ -37,32 +20,42 @@ export const authOptions = {
           await ConnectToDB();
 
           // Special: Handle registration via credentials when explicitly requested
-          if (credentials?.register === 'true') {
+          if (credentials?.register === "true") {
             const name = credentials?.name?.trim();
             const email = credentials?.email?.trim();
             const username = credentials?.username?.trim();
             const password = credentials?.password;
+            const bio = credentials?.bio?.trim();
+
+            console.log("Register data in nextAuth:", {
+              name,
+              email,
+              username,
+              password,
+              bio,
+            });
 
             if (!name || !email || !username || !password) {
-              throw new Error('Missing required fields for registration');
+              throw new Error("Missing required fields for registration");
             }
 
             const existingByEmail = await User.findOne({ email });
             if (existingByEmail) {
-              throw new Error('Email already in use');
+              throw new Error("Email already in use");
             }
 
             const existingByUsername = await User.findOne({ username });
             if (existingByUsername) {
-              throw new Error('Username already in use');
+              throw new Error("Username already in use");
             }
 
             const hashedPassword = await bcrypt.hash(password, 10);
             const newUser = new User({
-              name,
-              email,
-              username,
+              name: name,
+              username: username,
+              email: email,
               password: hashedPassword,
+              bio: bio,
             });
             await newUser.save();
 
@@ -79,17 +72,24 @@ export const authOptions = {
             throw new Error("Missing email or password");
           }
 
-          const user = await User.findOne({ email: credentials.email }).select('+password');
+          const user = await User.findOne({ email: credentials.email }).select(
+            "+password"
+          );
 
           if (!user) {
             throw new Error("No user found with this email");
           }
 
           if (!user.password) {
-            throw new Error("Account uses social login. Please sign in with provider");
+            throw new Error(
+              "Account uses social login. Please sign in with provider"
+            );
           }
 
-          const isValid = await bcrypt.compare(credentials.password, user.password);
+          const isValid = await bcrypt.compare(
+            credentials.password,
+            user.password
+          );
 
           if (!isValid) {
             throw new Error("Invalid password");
@@ -113,7 +113,6 @@ export const authOptions = {
       try {
         await ConnectToDB();
 
-        // Check if user exists in our custom User collection
         const existingUser = await User.findOne({ email: user.email });
 
         if (!existingUser) {
@@ -126,9 +125,11 @@ export const authOptions = {
           });
           await newUser.save();
         } else {
-          // Update existing user info if needed
+          // updating existing user info if needed
           let needsUpdate = false;
-          if (existingUser.username !== (user.name || user.email.split("@")[0])) {
+          if (
+            existingUser.username !== (user.name || user.email.split("@")[0])
+          ) {
             existingUser.username = user.name || user.email.split("@")[0];
             existingUser.name = user.name || user.email.split("@")[0];
             needsUpdate = true;
@@ -166,10 +167,10 @@ export const authOptions = {
   },
   secret: process.env.NEXTAUTH_SECRET,
   pages: {
-    signIn: '/login',
-    signUp: '/register',
+    signIn: "/login",
+    signUp: "/register",
   },
-  debug: process.env.NODE_ENV === 'development',
+  debug: process.env.NODE_ENV === "development",
 };
 
 const handler = NextAuth(authOptions);

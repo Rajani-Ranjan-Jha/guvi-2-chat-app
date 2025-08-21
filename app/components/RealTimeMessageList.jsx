@@ -4,6 +4,7 @@ import { useRealTimeMessaging } from '@/app/hooks/useRealTimeMessaging';
 import { useSelector } from 'react-redux';
 import { Check, CheckCheck, Clock, EditIcon, Trash2, User } from 'lucide-react';
 import { useSocket } from './SocketProvider';
+import { Tooltip } from 'react-tooltip';
 
 const RealTimeMessageList = ({
   conversationId,
@@ -51,10 +52,7 @@ const RealTimeMessageList = ({
 
   // Initialize messages with initial data (only once)
   useEffect(() => {
-    // console.log("Initial messages in RealTimeMessageList:", initialMessages);
     if (initialMessages.length > 0 && !initialMessagesAddedRef.current) {
-      // initialMessages.forEach(msg => addMessage(msg));
-      // setMessages(initialMessages);
       addMessage(initialMessages);
 
       initialMessagesAddedRef.current = true;
@@ -171,9 +169,9 @@ const RealTimeMessageList = ({
     const myId = user?.id ? String(user.id) : null;
 
     // read the message:
-    if(socket && !isOwnMessage && !message.metadata?.isRead && markMessageAsRead){
+    if (socket && !isOwnMessage && !message.metadata?.isRead && markMessageAsRead) {
       // console.warn(`SENDING '${message.content}: ${message.metadata?.isRead}' to mark as read`);
-      markMessageAsRead(conversationId,messageId)
+      markMessageAsRead(conversationId, messageId)
     }
 
 
@@ -182,18 +180,22 @@ const RealTimeMessageList = ({
         key={messageId}
         data-message-id={messageId}
         data-message-sender={senderId}
-        className={`flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}
+        className={` flex ${isOwnMessage ? 'justify-end' : 'justify-start'} mb-4`}
+
       >
+        <Tooltip id="message-list-tooltip" />
+
         <div
-          className={`relative max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}
+          className={` relative max-w-xs lg:max-w-md ${isOwnMessage ? 'order-2' : 'order-1'}`}
           onMouseEnter={() => setHoveredMessageId(messageId)}
           onMouseLeave={() => setHoveredMessageId((prev) => (prev === messageId ? null : prev))}
+
         >
           {/* Sender info for group chats */}
           {!isOwnMessage && isAGroup && (
             <div className="flex items-center gap-2 mb-1">
               <div className="relative">
-                <User className="w-4 h-4 text-gray-500" />
+                <User className="w-4 h-4 text-gray-100" />
                 {isOnline && (
                   <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-white"></div>
                 )}
@@ -219,26 +221,33 @@ const RealTimeMessageList = ({
                       </button>
                     </li>
                   ))}
-                  <li className='ml-2'>
-                    <button
-                      type="button"
-                      className="hover:scale-120 transition-transform cursor-pointer"
-                      onClick={() => { isOwnMessage ? ProvideMessageToEdit(message) : null }}
-                      aria-label='edit message'
-                    >
-                      <EditIcon className="w-4 h-4 text-gray-200" />
-                    </button>
-                  </li>
-                  <li className='ml-2'>
-                    <button
-                      type="button"
-                      className="hover:scale-110 transition-transform cursor-pointer"
-                      onClick={() => handleDeleteMessage(messageId)}
-                      aria-label='delete message'
-                    >
-                      <Trash2 className="w-4 h-4 text-gray-200" />
-                    </button>
-                  </li>
+                  {
+                    isOwnMessage && (
+                      <>
+                        <li className='ml-2'>
+                          <button
+                            type="button"
+                            className="hover:scale-120 transition-transform cursor-pointer"
+                            onClick={() => {ProvideMessageToEdit(message)}}
+                            aria-label='edit message'
+                          >
+                            <EditIcon className="w-4 h-4 text-gray-200" />
+                          </button>
+                        </li>
+                        <li className='ml-2'>
+                          <button
+                            type="button"
+                            className="hover:scale-110 transition-transform cursor-pointer"
+                            onClick={() => handleDeleteMessage(messageId)}
+                            aria-label='delete message'
+                          >
+                            <Trash2 className="w-4 h-4 text-gray-200" />
+                          </button>
+                        </li>
+                      </>
+                    )
+                  }
+
                 </ul>
               </div>
             </div>
@@ -246,10 +255,11 @@ const RealTimeMessageList = ({
 
           {/* Message bubble */}
           <div
-            className={`rounded-2xl px-4 py-2 ${isOwnMessage
-              ? 'blur-1 shadow-lg shadow-white text-white rounded-br-none'
-              : 'bg-gray-200 text-gray-800 rounded-bl-none'
+            className={` rounded-2xl px-4 py-2 ${isOwnMessage
+              ? 'blur-1 shadow-sm shadow-white text-white rounded-br-none'
+              : 'blur-2 text-white rounded-bl-none'
               }`}
+
           >
             {/* Message content */}
             <div className="break-words">
@@ -267,26 +277,10 @@ const RealTimeMessageList = ({
               </div>
             )}
 
-            {/* Reactions display */}
-            {reactions.length > 0 && (
-              <div className="mt-1 flex flex-wrap gap-1">
-                {reactions.map((r) => {
-                  const youReacted = myId && (r.users || []).map(String).includes(String(myId));
-                  return (
-                    <span
-                      key={r.emoji}
-                      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs border ${youReacted ? 'bg-white/20 border-white/40' : 'bg-black/10 border-black/10'} `}
-                    >
-                      <span>{r.emoji}</span>
-                      <span>{r.count || (r.users ? r.users.length : 0)}</span>
-                    </span>
-                  );
-                })}
-              </div>
-            )}
+
 
             {/* Message metadata */}
-            <div className={`flex items-center justify-between gap-2 mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-500'}`}>
+            <div className={`flex items-center justify-between gap-2 mt-2 text-xs ${isOwnMessage ? 'text-blue-100' : 'text-gray-200'}`}>
               <span>{formatTime(message.timestamp || message.createdAt)}</span>
               {
                 isOwnMessage && (
@@ -294,7 +288,32 @@ const RealTimeMessageList = ({
                 )
               }
             </div>
+
           </div>
+
+          {/* Reactions display */}
+          {reactions.length > 0 && (
+            <div className="relative -mt-1 flex flex-wrap gap-1 z-100">
+              {reactions.map((r) => {
+                const youReacted = myId && (r.users || []).map(String).includes(String(myId));
+                return (
+                  <span
+                    key={r.emoji}
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-sm border ${youReacted ? 'bg-white/40 border-white/40' : 'bg-white/10 border-white/40'}  cursor-default`}
+                    data-tooltip-id="message-list-tooltip"
+                    data-tooltip-place='bottom'
+                    data-tooltip-class-name='bg-red-500'
+                    data-tooltip-content={`${youReacted ? 'You:' : ''}`}
+                  >
+                    <span>{r.emoji}</span>
+                    <span>{r.count || (r.users ? r.users.length : 0)}</span>
+                  </span>
+                );
+              })}
+            </div>
+          )}
+
+
         </div>
       </div>
     );

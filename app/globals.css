@@ -30,26 +30,30 @@ body {
   background-image: linear-gradient(to right bottom , rgb(172, 172, 247), rgb(88, 88, 212), blue);
 }
 .gradient-dark-blue{
-  background: conic-gradient(at bottom right, #d81d1d, #af1e1e, #271111);
+  /* background: conic-gradient(at bottom right, black, rgb(175, 40, 40), red ); */
+  background: radial-gradient(ellipse at center, #1e1e44, #0f0f4d, #000000);
+}
+
+.gradient-profile{
+  /* background: linear-gradient(to right bottom, rgb(238, 40, 221), rgb(245, 97, 12)); */
+  background: linear-gradient(to right bottom, rgb(245, 20, 234), rgb(17, 122, 241));
 }
 
 .blur-1 {
   background-color: gray;
   background-color: transparent;
-  /* background-clip: padding-box; */
   backdrop-filter: blur(10px);
   opacity: 100%;
 }
 .blur-2{
   background-color: rgba(150, 150, 150, 0.479);
-  /* background-clip: padding-box; */
   backdrop-filter: blur(20px);
   opacity: 100%;
 }
 
 .handle-scroll{
   scroll-behavior: smooth;
-  scrollbar-color: white transparent;
+  scrollbar-color: rgb(156, 155, 155) transparent;
 }
 
 /* WebKit browsers */
@@ -67,3 +71,61 @@ body {
   border-radius: 4px;
   border: 2px solid transparent;
 }
+
+
+/* FOR EMOGJIES */
+
+@font-face {
+  font-family: 'NotoColorEmoji';
+  src: url('/NotoColorEmoji.ttf') format('truetype');
+  font-display: swap;
+  font-weight: normal;
+  font-style: normal;
+}
+
+.emoji-font {
+  font-family: 'NotoColorEmoji', 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Emoji', 'Segoe UI Symbol', sans-serif;
+}
+
+
+.emoji-picker-container {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  z-index: 1000;
+  width: 340px;
+  max-height: 450px;
+  overflow: hidden;
+  animation: emoji-picker-slide-up 0.2s ease-out;
+}
+
+@keyframes emoji-picker-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+ 
+
+
+@media (max-width: 640px) {
+  .emoji-picker-container {
+    width: 280px;
+    right: -10px;
+  }
+  
+  
+}
+
+
+

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import RealTimeChat from './RealTimeChat';
 
-const EnhancedChatTemplate = ({ conversationIdProp, contactData, onBack }) => {
+const EnhancedChatTemplate = ({ conversationIdProp, contactData,active, onBack }) => {
   const [conversationData, setConversationData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const user = useSelector((state) => state.user.user);
@@ -101,6 +101,7 @@ const EnhancedChatTemplate = ({ conversationIdProp, contactData, onBack }) => {
       <RealTimeChat
         conversationId={conversationIdProp}
         conversationData={conversationData}
+        activex = {active}
         onBack={onBack}
       />
     </div>

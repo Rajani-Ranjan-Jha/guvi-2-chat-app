@@ -5,7 +5,7 @@ import { authOptions } from "@/app/api/auth/[...nextauth]/route";
 import ConnectToDB from "@/utils/connect";
 import Conversation from "@/models/conversation";
 
-export async function GET(request, { params }) {
+export async function GET(request) {
   try {
     await ConnectToDB();
     
@@ -14,14 +14,10 @@ export async function GET(request, { params }) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { conversationId } = await params;
-    const currentUserId = session.user.id;
-
-    // Get query parameters for pagination
+    // const { conversationId } = new URL(request.url);
     const { searchParams } = new URL(request.url);
-    const page = parseInt(searchParams.get('page')) || 1;
-    const limit = parseInt(searchParams.get('limit')) || 50;
-    const skip = (page - 1) * limit;
+    const conversationId = searchParams.get('id');
+    const currentUserId = session.user.id;
 
     // Verify user is part of the conversation
     const conversation = await Conversation.findById(conversationId)
@@ -40,8 +36,6 @@ export async function GET(request, { params }) {
       })
         .populate('sender', 'username name email profilePic')
         .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit)
         .lean(),
       Message.countDocuments({ 
         conversation: conversationId,
@@ -68,20 +62,8 @@ export async function GET(request, { params }) {
       );
     }
 
-    const totalPages = Math.ceil(total / limit);
-    const hasNextPage = page < totalPages;
-    const hasPrevPage = page > 1;
-
     return NextResponse.json({
-      messages: messages.reverse(), // Reverse to get chronological order
-      pagination: {
-        currentPage: page,
-        totalPages,
-        totalMessages: total,
-        hasNextPage,
-        hasPrevPage,
-        limit
-      },
+      messages: messages.reverse(),
       conversation: {
         id: conversation._id,
         type: conversation.type

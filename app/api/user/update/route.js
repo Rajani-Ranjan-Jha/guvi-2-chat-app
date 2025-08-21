@@ -6,12 +6,13 @@ import User from "@/models/user";
 export async function PUT(request) {
   try {
     await ConnectToDB();
-    const { id, name, bio, email } = await request.json();
+    const { id, name,username, bio, email } = await request.json();
 
     const user = await User.findByIdAndUpdate(
       id,
       {
         name: name,
+        username: username,
         bio: bio,
         email: email
       },

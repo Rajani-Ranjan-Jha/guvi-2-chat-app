@@ -17,7 +17,7 @@ export const useRealTimeMessaging = (conversationId) => {
 
   // Add message OLD to the list
   const addMessage = useCallback((messages) => {
-    console.warn("Loading initial messages!");
+    // console.warn("Loading initial messages!");
     if (Array.isArray(messages)) {
       setMessages(messages);
     } else {
@@ -59,7 +59,9 @@ export const useRealTimeMessaging = (conversationId) => {
       });
 
       if (!response.ok) {
-        throw new Error("Failed to edit message");
+        // throw new Error("Failed to Delete the message");
+        console.error(response.error)
+        return
       }
 
       const result = await response.json();

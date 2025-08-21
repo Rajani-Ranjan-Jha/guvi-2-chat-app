@@ -53,12 +53,12 @@ export async function GET(request) {
       const otherParticipant = conv.participants.find(p => p._id.toString() !== currentUserId);
       
       // Get the last message content for display
-      let lastMessageContent = "No messages yet";
+      let lastMessage = "No messages yet";
       let lastMessageTime = conv.updatedAt;
       let lastMessageSender = "No User"
       
       if (conv.lastMessage) {
-        lastMessageContent = conv.lastMessage.content || "Media message";
+        lastMessage = conv.lastMessage || "No last message";
         lastMessageTime = conv.lastMessage.createdAt;
         lastMessageSender = conv.lastMessage.sender;
       }
@@ -69,7 +69,7 @@ export async function GET(request) {
         groupName: conv.groupName,
         updatedAt: conv.updatedAt,
         lastMessageTime: lastMessageTime,
-        lastMessageContent: lastMessageContent,
+        lastMessage: lastMessage,
         lastMessageSender: lastMessageSender,
         // Contact user information
         contactUser: {
@@ -78,7 +78,7 @@ export async function GET(request) {
           status: otherParticipant?.status,
           name: otherParticipant?.name,
           email: otherParticipant?.email,
-          profilePic: otherParticipant?.profilePic || "/vercel.svg",
+          profilePic: otherParticipant?.profilePic || null,
           bio: otherParticipant?.bio
         },
         // Conversation metadata
@@ -92,6 +92,8 @@ export async function GET(request) {
 
     // Sort contacts by last activity (most recent first)
     contacts.sort((a, b) => new Date(b.lastMessageTime) - new Date(a.lastMessageTime));
+
+    console.log("contacts:",contacts)
 
     return NextResponse.json({
       message: "Contacts retrieved successfully",
