@@ -36,10 +36,6 @@ A modern, real-time chat application built with Next.js 15, featuring seamless m
 - **NextAuth.js** - Authentication solution
 - **JWT** - JSON Web Tokens for secure authentication
 
-### Development Tools
-- **ESLint** - Code linting
-- **Concurrently** - Run multiple scripts simultaneously
-- **Turbopack** - Fast development server
 
 ## 🚀 Getting Started
 
@@ -149,44 +145,4 @@ chat-z/
 - `user_online` - User status updates
 - `message_delivered` - Message delivery confirmation
 
-## 🚀 Deployment
 
-### Vercel (Recommended)
-1. Push your code to GitHub
-2. Import project on [Vercel](https://vercel.com)
-3. Add environment variables
-4. Deploy!
-
-### Docker
-```bash
-# Build image
-docker build -t chat-z .
-
-# Run container
-docker run -p 3000:3000 --env-file .env chat-z
-```
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Next.js team for the amazing framework
-- Socket.IO for real-time communication
-- Tailwind CSS for styling
-- Emoji-picker-react for emoji support
-
----
-
-Made with ❤️ by the Chat-Z team
