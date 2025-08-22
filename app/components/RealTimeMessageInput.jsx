@@ -21,7 +21,6 @@ const RealTimeMessageInput = ({
   const typingTimeoutRef = useRef(null);
   const textareaRef = useRef(null);
 
-  // Update message when initialMessage or haveToEdit props change
   useEffect(() => {
     setMessage('');
     if (haveToEdit && initialMessage) {
@@ -31,7 +30,7 @@ const RealTimeMessageInput = ({
     }
   }, [initialMessage, haveToEdit, disabled]);
 
-  // Handle typing indicators
+
   useEffect(() => {
     if (message.trim()) {
       if (!isTyping) {
@@ -39,16 +38,7 @@ const RealTimeMessageInput = ({
         startTyping(conversationId);
       }
       
-      // // Clear existing timeout
-      // if (typingTimeoutRef.current) {
-      //   clearTimeout(typingTimeoutRef.current);
-      // }
-      
-      // // Set new timeout to stop typing indicator
-      // typingTimeoutRef.current = setTimeout(() => {
-      //   setIsTyping(false);
-      //   stopTyping(conversationId);
-      // }, 5000);
+
     } else {
       if (isTyping) {
         setIsTyping(false);
@@ -56,19 +46,13 @@ const RealTimeMessageInput = ({
       }
     }
 
-    // return () => {
-    //   if (typingTimeoutRef.current) {
-    //     clearTimeout(typingTimeoutRef.current);
-    //   }
-    // };
+
   }, [message, isTyping, conversationId, startTyping, stopTyping]);
 
-  // Cleanup typing indicator on unmount
+
   useEffect(() => {
     return () => {
-      // if (typingTimeoutRef.current) {
-      //   clearTimeout(typingTimeoutRef.current);
-      // }
+
       if (isTyping) {
         stopTyping(conversationId);
       }
@@ -119,7 +103,7 @@ const RealTimeMessageInput = ({
       const start = textarea.selectionStart;
       const end = textarea.selectionEnd;
       const newMessage = message.substring(0, start) + emoji + message.substring(end);
-      // const newMessage = message + emoji; // Append emoji at the end
+      // const newMessage = message + emoji; 
       // console.warn("New message with emoji:", newMessage);
       setMessage(newMessage);
 
@@ -134,7 +118,7 @@ const RealTimeMessageInput = ({
   const handleFileUpload = (e) => {
     const files = Array.from(e.target.files);
     const validFiles = files.filter(file => {
-      const maxSize = 10 * 1024 * 1024; // 10MB
+      const maxSize = 10 * 1024 * 1024;
       if (file.size > maxSize) {
         alert(`File ${file.name} is too large. Maximum size is 10MB.`);
         return false;

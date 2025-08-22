@@ -30,15 +30,11 @@ export const SocketProvider = ({ children }) => {
 
   useEffect(() => {
     if (!user?.id) {
-      // console.log('User ID not available, skipping socket connection.');
       return;
     }
 
     // Create socket connection
-    // console.log('Creating socket connection for user:', user.id);
-    const newSocket = io(process.env.NODE_ENV === 'production'
-      ? 'https://yourdomain.com'
-      : 'http://localhost:3000', {
+    const newSocket = io('http://localhost:3000', {
       transports: ['websocket', 'polling'],
       upgrade: true,
       rememberUpgrade: true,
@@ -47,12 +43,10 @@ export const SocketProvider = ({ children }) => {
 
     // Connection events
     newSocket.on('connect', () => {
-      // console.log('Socket connected with ID:', newSocket.id);
       setIsConnected(true);
-      // Emit online status when connected
+
       if (user.id) {
-        console.log(`User ${user.id} connected to Provider and ONLINE`);
-        // Small delay to ensure socket is fully ready
+        console.warn(`User ${user.id} connected to Provider`);
         setTimeout(() => {
           newSocket.emit('set-online', user.id);
         }, 100);
@@ -60,7 +54,7 @@ export const SocketProvider = ({ children }) => {
     });
 
     newSocket.on('disconnect', () => {
-      console.log(`User ${user.id} DISconnected to Socket.IO Provider`);
+      console.warn(`User ${user.id} Disconnected to Provider`);
       setIsConnected(false);
     });
 
@@ -71,13 +65,14 @@ export const SocketProvider = ({ children }) => {
 
     setSocket(newSocket);
 
-    // Cleanup on unmount
     return () => {
       if (newSocket) {
         newSocket.disconnect();
       }
     };
   }, [user, user?.id]);
+
+  
 
   // Join conversation room when user enters a chat
   const joinConversation = (conversationId) => {

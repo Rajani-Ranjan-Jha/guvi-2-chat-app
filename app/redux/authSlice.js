@@ -16,9 +16,7 @@ const authSlice = createSlice({
       state.ActiveUsers = action.payload || []
     },
     setAuth: (state, action) => {
-      // Support both shapes:
-      // 1) { user, token }
-      // 2) raw user object
+
       const incomingUser = action.payload && action.payload.user
         ? action.payload.user
         : action.payload;
@@ -33,7 +31,7 @@ const authSlice = createSlice({
       state.loading = false;
     },
     setUserInfo: (state, action) => {
-      // Accept either { user } or a raw user object
+
       state.user = action.payload && action.payload.user
         ? action.payload.user
         : action.payload;
@@ -59,7 +57,6 @@ const authSlice = createSlice({
   }
 })
 
-// Action creators are generated for each case reducer function
 export const {setActiveUsers, setAuth, setUserInfo, setToken, setLoading, logout } = authSlice.actions
 
 export default authSlice.reducer

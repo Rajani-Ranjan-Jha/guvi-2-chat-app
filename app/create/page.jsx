@@ -14,7 +14,7 @@ const CreateProfile = () => {
     const router = useRouter()
 
     useEffect(() => {
-        // Retrieve user data from localStorage
+        //  user data from localStorage
         const tempUserData = localStorage.getItem('tempUserData');
         if (tempUserData) {
             const parsedData = JSON.parse(tempUserData);
@@ -38,22 +38,7 @@ const CreateProfile = () => {
                 email: userData?.email,
                 bio: bio,
             });
-            // // 1) Register user via NextAuth credentials with register flag
-            // const registerResult = await signIn('credentials', {
-            //     redirect: false,
-            //     register: 'true',
-            //     name: userData?.name,
-            //     email: userData?.email,
-            //     username: username,
-            //     password: userData?.password,
-            //     bio: bio,
-            // });
 
-            // if (registerResult?.error) {
-            //     throw new Error(registerResult.error);
-            // }
-
-            // 2) Create profile document via profile API
             const profilePayload = {
                 user: { name: userData?.name, email: userData?.email, password: userData?.password },
                 username: username,
@@ -65,7 +50,7 @@ const CreateProfile = () => {
             }
             console.warn('Profile created successfully:', response.data);
 
-            // 3) After successful registration, route to home
+
             router.push('/');
             setTimeout(() => {
                 setLoading(false);

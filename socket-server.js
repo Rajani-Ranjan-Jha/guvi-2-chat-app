@@ -33,11 +33,11 @@ app.prepare().then(() => {
     transports: ['websocket', 'polling']
   });
 
-  // Store online users with their socket IDs
+  // storing online users with their socket IDs
   const onlineUsers = new Map(); // userId -> socketId
   const socketToUser = new Map(); // socketId -> userId
 
-  // Socket.IO event handlers
+  // event handlers
   io.on('connection', (socket) => {
     console.log('User connected with ID:', socket.id);
     console.log('Socket connection established(socket-server)');
@@ -58,8 +58,7 @@ app.prepare().then(() => {
     socket.on('set-online', (userId) => {
       console.log(`User ${userId} is online(socket-server ${socket.id})\n`);
       
-      // Store the user's online status
-      // onlineUsers.push(userId.toString())
+
       socketToUser.set(socket.id, userId);
       onlineUsers.set(userId, socket.id)
 
@@ -111,12 +110,6 @@ app.prepare().then(() => {
     socket.on('send-message', (data) => {
       const { conversationId, message } = data;
       console.log(`Received message for conversation ${conversationId}:`, message);
-      // Broadcast message to all users in the conversation (except sender)
-      // socket.to(conversationId).emit('new-message', {
-      //   conversationId,
-      //   message
-      // });
-      // TODO:
       io.to(conversationId).emit('new-message', {
         conversationId,
         message
@@ -127,12 +120,6 @@ app.prepare().then(() => {
     // Handle read receipts
     socket.on('mark-read', (data) => {
       const { conversationId, messageId, userId } = data;
-      // socket.to(conversationId).emit('message-read', {
-      //   conversationId,
-      //   messageId,
-      //   userId
-      // });
-      // TODO:
       socket.to(conversationId).emit('message-read', {
         conversationId,
         messageId,
@@ -143,11 +130,6 @@ app.prepare().then(() => {
     // Handle message delivery confirmation
     socket.on('mark-delivered', (data) => {
       const { conversationId, messageId } = data;
-      // socket.to(conversationId).emit('message-delivered', {
-      //   conversationId,
-      //   messageId
-      // });
-      // TODO:
       socket.to(conversationId).emit('message-delivered', {
         conversationId,
         messageId

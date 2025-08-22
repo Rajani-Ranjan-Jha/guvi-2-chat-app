@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import RealTimeChat from './RealTimeChat';
 
-const EnhancedChatTemplate = ({ conversationIdProp, contactData,active, onBack }) => {
+const MainChatTemplate = ({ conversationIdProp, contactData, active, onBack }) => {
   const [conversationData, setConversationData] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
   const user = useSelector((state) => state.user.user);
@@ -13,9 +13,9 @@ const EnhancedChatTemplate = ({ conversationIdProp, contactData,active, onBack }
       return;
     }
 
-    // If we have contactData, use it directly
+    // If we have contactData, using it directly
     if (contactData) {
-      // Ensure we have the required fields
+
       if (!contactData.conversationId && !contactData._id) {
         return;
       }
@@ -33,7 +33,7 @@ const EnhancedChatTemplate = ({ conversationIdProp, contactData,active, onBack }
       return;
     }
 
-    // Fallback: try to fetch conversation data if no contactData provided
+    // Fallback: trying to fetch conversation data if no contactData provided
     const fetchConversationData = async () => {
       try {
         setIsLoading(true);
@@ -42,7 +42,7 @@ const EnhancedChatTemplate = ({ conversationIdProp, contactData,active, onBack }
           const data = await response.json();
           setConversationData(data.conversation);
         } else {
-          // If API fails, create basic conversation data
+
           setConversationData({
             id: conversationIdProp,
             name: 'Chat',
@@ -52,7 +52,7 @@ const EnhancedChatTemplate = ({ conversationIdProp, contactData,active, onBack }
           });
         }
       } catch (error) {
-        // Create basic conversation data on error
+        
         setConversationData({
           id: conversationIdProp,
           name: 'Chat',
@@ -108,4 +108,4 @@ const EnhancedChatTemplate = ({ conversationIdProp, contactData,active, onBack }
   );
 };
 
-export default EnhancedChatTemplate;
+export default MainChatTemplate;

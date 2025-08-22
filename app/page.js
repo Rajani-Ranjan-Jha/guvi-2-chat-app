@@ -19,22 +19,21 @@ import { useSelector, useDispatch } from "react-redux";
 import axios from "axios";
 import { Tooltip } from "react-tooltip";
 
-import { useSocket } from "./components/SocketProvider";
-import { setAuth, setUserInfo, setActiveUsers } from "./redux/authSlice";
 
-import AddContacts from "./components/AddContacts";
+import { setUserInfo } from "./redux/authSlice";
+
+import CreateNewContact from "./components/CreateNewContact";
 import ShowContacts from "./components/ShowContacts";
 import DefaultTemplate from "./components/DefaultTemplate";
-import EnhancedChatTemplate from "./components/EnhancedChatTemplate";
-import { useRealTimeMessaging } from "./hooks/useRealTimeMessaging";
+import MainChatTemplate from "./components/MainChatTemplate";
 import UserProfile from "./components/UserProfile";
 
 export default function Home() {
-  // for addContact.jsx
+
   const [addbtn, setAddbtn] = useState(false);
   const [isCreatingGroup, setIsCreatingGroup] = useState(false);
 
-  // for profile
+
   const [OpenProfile, setOpenProfile] = useState(false);
 
   const [isSidebarOpen, setisSidebarOpen] = useState(true);
@@ -42,20 +41,14 @@ export default function Home() {
   const [selectedChat, setSelectedChat] = useState(null);
   const [searchTerm, setsearchTerm] = useState("");
 
-  // Current user from Redux
+
   const currentUser = useSelector((state) => state.user.user) || {};
   // console.warn("Current user", currentUser)
+
   const [onlineUsers, setOnlineUsers] = useState([]);
 
-  // TODO: using socket
-  const { socket, isConnected, joinConversation, leaveConversation } =
-    useSocket();
-
-  const {} = useRealTimeMessaging();
-
   const dispatch = useDispatch();
-  const userX = useSelector((state) => state.user);
-  // console.warn("user data", userX)
+
 
   useEffect(() => {
     const loadCurrentUser = async () => {
@@ -103,20 +96,19 @@ export default function Home() {
     setSelectedChat(contact);
   };
 
-  const handleConversationSelect = (conversation) => {
+  const handleNewConversationCreate = (conversation) => {
     conversation.conversationId = conversation._id;
     setSelectedChat(conversation);
     closeAddContact();
-    // console.warn("CONVERSATION FORM ADDCONTACT:",conversation)
   };
 
   const handleBackToContacts = () => {
     setSelectedChat(null);
   };
 
-  // Layout constants for left rail widths (in pixels)
-  const NAV_WIDTH = 64; // fixed nav bar width
-  const SIDEBAR_WIDTH = 320; // collapsible sidebar width
+ 
+  const NAV_WIDTH = 64; 
+  const SIDEBAR_WIDTH = 320;
   const leftRailWidth = isSidebarOpen ? NAV_WIDTH + SIDEBAR_WIDTH : NAV_WIDTH;
 
   return (
@@ -181,7 +173,7 @@ export default function Home() {
           {/* search bar, add contact, app name, etc */}
           <div className="w-full h-1/5 flex flex-col justify-center items-center space-y-3">
             <div className="w-full flex justify-between items-center">
-              <h1 className="text-3xl text-left font-semibold bg-gradient-to-r from-orange-500 via-indigo-500 to-green-500 text-transparent bg-clip-text">
+              <h1 className="text-3xl text-left font-semibold">
                 Chat Z
               </h1>
               <div className="flex items-center space-x-2">
@@ -271,8 +263,7 @@ export default function Home() {
       >
         {selectedChat ? (
           <>
-            {/* {console.log('Rendering EnhancedChatTemplate with:', selectedChat)} */}
-            <EnhancedChatTemplate
+            <MainChatTemplate
               conversationIdProp={
                 selectedChat.conversationId ||
                 selectedChat._id ||
@@ -298,9 +289,9 @@ export default function Home() {
             className="min-h-50 w-100 blur-2 p-2 rounded-lg"
             onClick={(e) => e.stopPropagation()}
           >
-            <AddContacts
+            <CreateNewContact
               creatingAGroup={isCreatingGroup}
-              onConversationCreate={handleConversationSelect}
+              onConversationCreate={handleNewConversationCreate}
             />
           </div>
         </div>

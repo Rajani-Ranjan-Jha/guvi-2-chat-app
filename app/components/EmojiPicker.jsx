@@ -37,16 +37,14 @@ const CustomEmojiPicker = React.memo(({
   }, [onClose]);
 
   const handleEmojiClick = (emojiData, event) => {
-    // emojiData contains: emoji, unified, names, etc.
     onEmojiSelect(emojiData.emoji);
-    // onClose();
+
   };
 
   return (
     <div 
       ref={pickerRef} 
       className="emoji-picker-container"
-    //   className="bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden"
     >
       <EmojiPicker
         onEmojiClick={handleEmojiClick}

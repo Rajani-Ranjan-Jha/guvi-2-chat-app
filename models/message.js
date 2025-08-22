@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const messageSchema = new mongoose.Schema(
   {
-    // Reference to the conversation this message belongs to
+    
     conversation: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Conversation",
@@ -10,21 +10,21 @@ const messageSchema = new mongoose.Schema(
       index: true,
     },
 
-    // Message sender
+    
     sender: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
     },
 
-    // Message content
+    
     content: {
       type: String,
       trim: true,
       maxlength: 10000,
     },
 
-    // Message type
+    
     messageType: {
       type: String,
       enum: [
@@ -41,7 +41,7 @@ const messageSchema = new mongoose.Schema(
       default: "text",
     },
 
-    // Media attachments
+    
     attachments: [
       {
         type: {
@@ -67,21 +67,21 @@ const messageSchema = new mongoose.Schema(
       },
     ],
 
-    // Message metadata
+    
     metadata: {
-      // Delivery status
+      
       isDelivered: {
         type: Boolean,
         default: true,
       },
       deliveredAt: Date,
 
-      // Read receipts
+      
       isRead: {
         type: Boolean,
         default: false,
       },
-      // Read by users (array of user IDs)
+      
       readBy: [
         {
           type: mongoose.Schema.Types.ObjectId,
@@ -90,7 +90,7 @@ const messageSchema = new mongoose.Schema(
       ],
       readAt: Date,
 
-      // Forwarded message
+      
       isForwarded: {
         type: Boolean,
         default: false,
@@ -100,7 +100,7 @@ const messageSchema = new mongoose.Schema(
         ref: "Message",
       },
 
-      // Reply to message
+      
       isReply: {
         type: Boolean,
         default: false,
@@ -110,7 +110,7 @@ const messageSchema = new mongoose.Schema(
         ref: "Message",
       },
 
-      // Edited message
+      
       isEdited: {
         type: Boolean,
         default: false,
@@ -126,7 +126,6 @@ const messageSchema = new mongoose.Schema(
         },
       ],
 
-      // Deleted message
       isDeleted: {
         type: Boolean,
         default: false,
@@ -137,7 +136,7 @@ const messageSchema = new mongoose.Schema(
         ref: "User",
       },
 
-      // Reactions
+      
       reactions: [
         {
           emoji: String,
@@ -155,14 +154,14 @@ const messageSchema = new mongoose.Schema(
       ],
     },
 
-    // Message status
+    
     status: {
       type: String,
       enum: ["sent", "delivered", "read", "failed", "deleted"],
       default: "sent",
     },
 
-    // Encryption
+    
     encryption: {
       isEncrypted: {
         type: Boolean,
@@ -172,7 +171,7 @@ const messageSchema = new mongoose.Schema(
       algorithm: String,
     },
 
-    // Soft delete support
+    
     isDeleted: {
       type: Boolean,
       default: false,
@@ -180,7 +179,7 @@ const messageSchema = new mongoose.Schema(
 
     deletedAt: Date,
 
-    // Timestamps
+    
     createdAt: {
       type: Date,
       default: Date.now,
@@ -195,18 +194,18 @@ const messageSchema = new mongoose.Schema(
   }
 );
 
-// Indexes for performance
+
 messageSchema.index({ conversation: 1, createdAt: -1 });
 messageSchema.index({ sender: 1, createdAt: -1 });
 messageSchema.index({ readBy: 1 });
 messageSchema.index({ status: 1 });
 
-// Virtual for message age
+
 messageSchema.virtual("age").get(function () {
   return Date.now() - this.createdAt.getTime();
 });
 
-// Update updatedAt on save
+
 messageSchema.pre("save", function (next) {
   this.updatedAt = Date.now();
   next();

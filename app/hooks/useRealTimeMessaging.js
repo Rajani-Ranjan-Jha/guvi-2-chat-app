@@ -15,14 +15,14 @@ export const useRealTimeMessaging = (conversationId) => {
   const user = useSelector((state) => state.user.user);
   const dispatch = useDispatch();
 
-  // Add message OLD to the list
+
   const addMessage = useCallback((messages) => {
     // console.warn("Loading initial messages!");
     if (Array.isArray(messages)) {
       setMessages(messages);
     } else {
       setMessages((prev) => {
-        // Check if message already exists
+
         const exists = prev.some(
           (msg) => msg._id === messages._id || msg.id === messages.id
         );
@@ -32,13 +32,13 @@ export const useRealTimeMessaging = (conversationId) => {
     }
   }, []);
 
-  // TODO: add new messages to the list
+
   const addNewMessage = useCallback((message) => {
     console.warn("newMessage added!");
     setMessages((prev) => [...prev, message]);
   }, []);
 
-  // Update existing message
+  // Update message
   const updateMessage = useCallback((messageId, updates) => {
     setMessages((prev) =>
       prev.map((msg) =>
@@ -59,7 +59,6 @@ export const useRealTimeMessaging = (conversationId) => {
       });
 
       if (!response.ok) {
-        // throw new Error("Failed to Delete the message");
         console.error(response.error)
         return
       }
@@ -86,7 +85,7 @@ export const useRealTimeMessaging = (conversationId) => {
       const currentUserId = String(user?.id || "");
       if (!currentUserId) return;
 
-      // Keep snapshot for rollback on failure
+
       let previousMessagesSnapshot = null;
 
       setMessages((prev) => {
@@ -102,7 +101,7 @@ export const useRealTimeMessaging = (conversationId) => {
             })
           );
 
-          // Find any previous reaction by this user
+
           const prevIdx = existingReactions.findIndex((r) =>
             r.users.includes(currentUserId)
           );
@@ -110,7 +109,7 @@ export const useRealTimeMessaging = (conversationId) => {
             (r) => r.emoji === emoji
           );
 
-          // If user clicked the same emoji they already have, toggle it off
+
           if (prevIdx > -1 && existingReactions[prevIdx].emoji === emoji) {
             const r = { ...existingReactions[prevIdx] };
             r.users = r.users.filter((u) => u !== currentUserId);
@@ -128,7 +127,6 @@ export const useRealTimeMessaging = (conversationId) => {
             return { ...msg, metadata: updatedMetadata };
           }
 
-          // Otherwise, remove user's previous reaction (if any), and add to the new emoji
           let trimmed = existingReactions
             .map((r) => ({
               ...r,
@@ -136,7 +134,6 @@ export const useRealTimeMessaging = (conversationId) => {
             }))
             .filter((r) => r.users.length > 0);
 
-          // Add to clicked reaction
           const idxAfterTrim = trimmed.findIndex((r) => r.emoji === emoji);
           if (idxAfterTrim > -1) {
             const r = { ...trimmed[idxAfterTrim] };
@@ -188,7 +185,7 @@ export const useRealTimeMessaging = (conversationId) => {
     [user]
   );
 
-  // Join/leave conversation when component mounts/unmounts
+
   useEffect(() => {
     if (conversationId && isConnected) {
       joinConversation(conversationId);
@@ -201,12 +198,12 @@ export const useRealTimeMessaging = (conversationId) => {
     };
   }, [user, conversationId, isConnected, joinConversation, leaveConversation]);
 
-  // Socket event listeners
+
   useEffect(() => {
     if (!socket) {
       return;
     }
-    // Handle new messages
+
     const handleNewMessage = (data) => {
       if (data.conversationId === conversationId) {
         // TODO:
@@ -225,25 +222,19 @@ export const useRealTimeMessaging = (conversationId) => {
             return prev;
           });
         } else {
-          // setTypingUsers((prev) =>
-          //   prev.filter((name) => name !== data.username)
-          // );
-          // TODO:
           setTypingUsers([]);
         }
       }
     };
 
-    // Handle initial online users list
+
     const handleOnlineUsersList = (userIds) => {
-      // console.log("Hook: Received online users list:", userIds);
-      // TODO: adding online users into the redux
       const onlineSet = new Set(userIds.map((id) => String(id)));
       setOnlineUsers(onlineSet);
       dispatch(setActiveUsers(Array.from(onlineSet)));
     };
 
-    // Handle user online status
+
     const handleUserOnline = (userId) => {
       if (!userId) {
         // console.log("Didn't get any userID(hook)");
@@ -272,11 +263,10 @@ export const useRealTimeMessaging = (conversationId) => {
       });
     };
 
-    // Handle message read receipts
     const handleMessageRead = async (data) => {
       // console.warn("handleMessageRead RUN", data);
       if (data.conversationId === conversationId) {
-        // mark read locally
+
         setMessages((prev) => {
           const updated = prev.map((msg) => {
             const matches =
@@ -301,7 +291,6 @@ export const useRealTimeMessaging = (conversationId) => {
       }
     };
 
-    // Handle message delivery confirmation
     const handleMessageDelivered = (data) => {
       console.warn("handleMessageDelivered RUN", data);
       if (data.conversationId === conversationId) {
@@ -325,7 +314,7 @@ export const useRealTimeMessaging = (conversationId) => {
       }
     };
 
-    // Attach event listeners
+    //  event listeners
     socket.on("new-message", handleNewMessage);
     socket.on("user-typing", handleUserTyping);
     socket.on("online-users-list", handleOnlineUsersList);

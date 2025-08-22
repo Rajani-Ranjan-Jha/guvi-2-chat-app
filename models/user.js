@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    // required: true,
+    required: true,
   },
   bio: {
     type: String,
@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema({
   requests:{
     type: Array,
   },
-  // User status and presence
+
   status: {
     type: String,
     enum: ['online', 'away', 'busy', 'offline'],
@@ -51,7 +51,7 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  // Typing indicators for different conversations
+
   typingStatus: {
     type: Map,
     of: {
@@ -60,7 +60,7 @@ const userSchema = new mongoose.Schema({
     },
     default: {}
   },
-  // Online status tracking
+
   isOnline: {
     type: Boolean,
     default: false
@@ -69,12 +69,6 @@ const userSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  // followers:{
-  //   type: Array,
-  // },
-  // following:{
-  //   type: Array,
-  // },
   createdAt: {
     type: Date,
     default: Date.now,
@@ -85,19 +79,19 @@ const userSchema = new mongoose.Schema({
   },
 });
 
-// Indexes for performance (removed duplicates)
+
 userSchema.index({ status: 1 });
 userSchema.index({ lastSeen: -1 });
 userSchema.index({ lastActivity: -1 });
 
-// Update timestamps on save
+
 userSchema.pre('save', function(next) {
   this.updatedAt = Date.now();
   this.lastActivity = Date.now();
   next();
 });
 
-// Virtual for online status
+
 userSchema.virtual('isCurrentlyOnline').get(function() {
   if (this.status === 'offline') return false;
   const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);

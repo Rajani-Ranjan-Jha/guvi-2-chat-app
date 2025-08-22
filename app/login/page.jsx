@@ -3,7 +3,7 @@ import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { signIn } from "next-auth/react";
 import { useDispatch } from 'react-redux';
-import { setAuth } from '../redux/authSlice'; // Import setAuth action
+import { setAuth } from '../redux/authSlice'; 
 
 import React, { useState, useEffect } from 'react';
 import { EyeClosedIcon, EyeIcon } from 'lucide-react';
@@ -15,9 +15,9 @@ const Login = () => {
     const [EyeBtn, setEyeBtn] = useState(true);
     const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const dispatch = useDispatch(); // Initialize dispatch
+    const dispatch = useDispatch(); 
     useEffect(() => {
-        // Check if user is already authenticated
+
         const checkAuth = async () => {
             const response = await fetch('/api/auth/session');
             const data = await response.json();
@@ -44,9 +44,7 @@ const Login = () => {
             dispatch(setAuth({ user: result.user, token: result.token }));
             console.warn('Logged in successfully');
             router.push("/");
-            // setTimeout(() => {
-            //     setLoading(false);
-            // }, 4000);
+            
         }
     };
 

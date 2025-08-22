@@ -37,9 +37,9 @@ const RealTimeChat = ({
 
 
   const user = useSelector((state) => state.user.user);
-  // TODO: online users
+
   const active = useSelector((state) => state.user.ActiveUsers);
-  // console.warn("Active users in RealTimeChat:", conversationData);
+  // console.warn("Active users in RealTimeChat:", active);
 
 
 
@@ -88,7 +88,6 @@ const RealTimeChat = ({
       } catch (err) {
         console.error('Error fetching messages:', err);
         setError(err.message);
-        // Set empty messages array on error instead of failing completely
         setMessages([]);
       } finally {
         setIsLoading(false);
@@ -99,12 +98,12 @@ const RealTimeChat = ({
   }, [conversationId]);
 
 
-  // Handle sending messages
+  //  sending messages
   const handleSendMessage = async (messageData) => {
     if (!conversationId || !user) return;
     try {
-      // Optimistically add message to local state
-      const optimisticMessage = {
+
+      const tempMessage = {
         _id: `temp-${Date.now()}`,
         conversation: conversationId,
         sender: user.id,
@@ -119,12 +118,10 @@ const RealTimeChat = ({
         }
       };
 
-      setMessages(prev => [...prev, optimisticMessage]);
+      // socket provider's function to send message
+      sendMessage(conversationId, tempMessage);
 
-      // Send message through Socket.IO for real-time delivery
-      sendMessage(conversationId, optimisticMessage);
 
-      // Also send to API for persistence
       const response = await fetch('/api/messages/send', {
         method: 'POST',
         headers: {
@@ -144,10 +141,10 @@ const RealTimeChat = ({
 
       const result = await response.json();
 
-      // Update the optimistic message with the real one
+
       setMessages(prev =>
         prev.map(msg =>
-          msg._id === optimisticMessage._id ? result.data : msg
+          msg._id === tempMessage._id ? result.data : msg
         )
       );
 
@@ -156,17 +153,17 @@ const RealTimeChat = ({
     } catch (error) {
       console.error('Error sending message:', error);
 
-      // Remove optimistic message on error
+
       setMessages(prev =>
-        prev.filter(msg => msg._id !== optimisticMessage._id)
+        prev.filter(msg => msg._id !== tempMessage._id)
       );
 
-      // You could show a toast notification here
+
       alert('Failed to send message. Please try again!');
     }
   };
 
-  // Handle editing messages
+  //  editing messages
   const handleEditMessage = async (newContent) => {
     if (!conversationId || !user || !messageToEdit) return;
 
@@ -219,14 +216,14 @@ const RealTimeChat = ({
     }
   };
 
-  // Take message to edit
+  // taking message to edit
   const TakeMessageToEdit = (message) => {
     // console.warn("Taking message to edit:", message);
     setMessageToEdit(message);
     setHaveToEdit(true);
   }
 
-  // Handle back navigation
+  //  back navigation
   const handleBack = () => {
     if (onBack) {
       onBack();

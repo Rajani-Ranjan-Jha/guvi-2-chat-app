@@ -17,10 +17,9 @@ const RealTimeMessageList = ({
   const initialMessagesAddedRef = useRef(false);
   const user = useSelector((state) => state.user.user);
 
-  // TODO: use real-time messaging hook
-  // const [messages, setMessages] = useState([]);
 
-  // TODO: to handle the typing animation
+
+
   const [isTyping, setIsTyping] = useState(false);
 
   // to manage message action menu visibility per message
@@ -59,18 +58,18 @@ const RealTimeMessageList = ({
     }
   }, [initialMessages, addMessage]);
 
-  // Reset the ref when conversation changes
+
   useEffect(() => {
     initialMessagesAddedRef.current = false;
   }, [conversationId]);
 
-  // Auto-scroll to bottom when new messages arrive
+
   useEffect(() => {
     // console.log("Messages updated in RealTimeMessageList:", messages);
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Set up typing indicator
+
   useEffect(() => {
     if (typingUsers.length > 0) {
       setIsTyping(true);

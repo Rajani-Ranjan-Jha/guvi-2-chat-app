@@ -18,6 +18,8 @@ export async function GET(request) {
     const userEmail = session.user.email;
     const currentUserId = session.user.id;
 
+    console.log("UserEmail:", userEmail)
+
     // Fetch user with contacts
     const user = await User.findOne({ email: userEmail })
       .select('username name email profilePic bio contacts createdAt')

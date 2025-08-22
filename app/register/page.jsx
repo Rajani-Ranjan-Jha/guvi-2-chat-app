@@ -17,7 +17,7 @@ const Register = () => {
 
     async function handleSubmit(e) {
         e.preventDefault();
-        // Basic validation
+
         if (!name || !email || !password || !confirmPassword) {
             alert("All fields are required");
             return;
@@ -26,10 +26,9 @@ const Register = () => {
             alert("Password and confirm password should be same");
             return;
         }
-        // Save user data temporarily in localStorage
+
         const userData = { name, email, password };
         localStorage.setItem('tempUserData', JSON.stringify(userData));
-        // Navigate to create page
         router.push('/create');
     }
 

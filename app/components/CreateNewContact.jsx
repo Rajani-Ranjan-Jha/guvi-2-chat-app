@@ -2,16 +2,12 @@
 import axios from 'axios'
 import React, { useEffect, useState } from 'react'
 import {
-  CircleArrowRight,
   MessageCircleMoreIcon
 } from "lucide-react";
 import { Tooltip } from 'react-tooltip'
-import { useRouter } from 'next/navigation'
-import EnhancedChatTemplate from './EnhancedChatTemplate';
 
 
-const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
-  const router = useRouter();
+const CreateNewContact = ({ creatingAGroup = false, onConversationCreate }) => {
   const [searchInput, setSearchInput] = useState('')
   const [conversation, setconversation] = useState(null)
   const [receivedData, setReceivedData] = useState([])
@@ -46,11 +42,10 @@ const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
     }
   }
 
-  const handleSendMessage = async (user) => {
+  const handleCreateChat = async (user) => {
     try {
-      // Create or get existing conversation with this user
+
       const conversationRes = await axios.post('/api/conversation/create', {
-        //here user._id is the id of the user from the Profile collection
         participants: [user._id],
         type: 'direct'
       });
@@ -58,12 +53,12 @@ const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
       if (conversationRes.data) {
         setconversation(conversationRes.data.conversation)
 
-        console.warn(conversation.message)
+        // console.warn(conversation.message)
         if (onConversationCreate) {
-          onConversationCreate(conversation)
+          onConversationCreate(conversationRes.data.conversation)
+
         }
 
-        // router.push(`/chat/${conversationRes.data._id}`);
       }
     } catch (error) {
       console.error('Error creating conversation:', error);
@@ -82,7 +77,7 @@ const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
         type: 'group',
         groupName: GroupName,
         groupDescription: GroupDesc,
-        groupAvatar: '', // You can set a default avatar or leave it empty
+        groupAvatar: '',
       });
 
       if (conversationRes.data) {
@@ -100,9 +95,7 @@ const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
     fetchAllUsers()
   }, [])
 
-  useEffect(() => {
-    console.warn("SelectedContactsForGroup", SelectedContactsForGroup)
-  }, [SelectedContactsForGroup])
+
 
   return (
     <div className='w-full h-full rounded-lg flex flex-col justify-center items-center gap-2 p-2'>
@@ -157,7 +150,7 @@ const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
                 className='w-full flex justify-between items-center px-2 py-2 hover:bg-white/50 cursor-pointer rounded-lg'
                 key={user._id || user.id || index}
                 onClick={() => {
-                  // Handle group contact selection
+
                   setSelectedContactsForGroup(prev => {
                     const isSelected = prev.some(contact => contact._id === user._id);
                     if (isSelected) {
@@ -180,7 +173,7 @@ const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
               <li
                 className='w-full flex justify-between items-center px-2 py-2 hover:bg-white/50 cursor-pointer rounded-lg'
                 key={user._id || user.id || index}
-                onClick={() => handleSendMessage(user)}
+                onClick={() => handleCreateChat(user)}
               >
                 <span>{user.username}</span>
                 <button
@@ -213,4 +206,4 @@ const AddContacts = ({ creatingAGroup = false, onConversationCreate }) => {
   )
 }
 
-export default AddContacts
+export default CreateNewContact

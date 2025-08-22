@@ -119,12 +119,11 @@ const ShowContacts = ({ onContactSelect, searchContact = null }) => {
     useEffect(() => {
         if (!socket) return;
 
-        // Handle initial online users list
+        // handing initial online users list
         const handleOnlineUsersList = (userIds) => {
-            console.log("ShowContacts: Received online users list:", userIds);
+            // console.log("ShowContacts: Received online users list:", userIds);
             const onlineSet = new Set(userIds.map((id) => String(id)));
             setOnlineUsers(onlineSet);
-            // TODO: adding online users into the redux
             dispatch(setActiveUsers(Array.from(onlineSet)));
         };
 
